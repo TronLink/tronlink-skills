@@ -1,0 +1,33 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tronlink-skills",
+  "description": "AI Agent skills for TronLink wallet — wallet management, token queries, DEX swap, energy/bandwidth resource management, and TRX staking on the TRON network",
+  "owner": {
+    "name": "tronlink-skills"
+  },
+  "metadata": {
+    "description": "6 skills covering wallet, token, market, swap, resource, and staking operations on TRON"
+  },
+  "plugins": [
+    {
+      "name": "tronlink-skills",
+      "source": "./",
+      "description": "6 TronLink skills — wallet balance & transfer, token search & security audit, market data & whale monitoring, DEX swap via SunSwap, Energy/Bandwidth resource management, and TRX Stake 2.0 with SR voting",
+      "version": "1.0.0",
+      "author": {
+        "name": "tronlink-skills"
+      },
+      "license": "MIT",
+      "keywords": [
+        "tron", "tronlink", "trx", "trc20", "defi", "wallet",
+        "staking", "energy", "bandwidth", "sunswap", "web3", "skills"
+      ],
+      "category": "web3",
+      "tags": [
+        "skills", "tron", "wallet", "defi", "swap",
+        "staking", "energy", "blockchain"
+      ],
+      "strict": false
+    }
+  ]
+}

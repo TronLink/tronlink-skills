@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    "skills/tron-wallet/SKILL.md",
+    "skills/tron-token/SKILL.md",
+    "skills/tron-market/SKILL.md",
+    "skills/tron-swap/SKILL.md",
+    "skills/tron-resource/SKILL.md",
+    "skills/tron-staking/SKILL.md"
+  ]
+}

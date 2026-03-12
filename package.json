@@ -1,0 +1,44 @@
+{
+  "name": "tronlink-skills",
+  "version": "1.0.0",
+  "description": "AI Agent skills for TronLink wallet — wallet management, token queries, DEX swap, energy/bandwidth resource management, and TRX staking on the TRON network.",
+  "main": "scripts/tron_api.mjs",
+  "type": "module",
+  "bin": {
+    "tron-api": "scripts/tron_api.mjs"
+  },
+  "files": [
+    "skills/",
+    "scripts/",
+    "docs/",
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".claude-plugin/",
+    ".cursor-plugin/",
+    ".codex/",
+    ".opencode/"
+  ],
+  "scripts": {
+    "start": "node scripts/tron_api.mjs",
+    "mcp": "node scripts/mcp_server.mjs",
+    "test": "node scripts/tron_api.mjs validate-address --address TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    "postinstall": "echo '\\n  ✅ tronlink-skills installed!\\n  Skills: tron-wallet, tron-token, tron-market, tron-swap, tron-resource, tron-staking\\n  Run: npx tron-api --help\\n'"
+  },
+  "dependencies": {},
+  "optionalDependencies": {
+    "tronweb": "^6.0.0"
+  },
+  "keywords": [
+    "tron", "tronlink", "trx", "trc20", "defi", "wallet",
+    "staking", "energy", "bandwidth", "sunswap", "ai-agent",
+    "skills", "claude-code", "cursor", "codex", "opencode", "web3"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/tronlink-skills"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

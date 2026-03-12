@@ -1,0 +1,11 @@
+{
+  "name": "tronlink-skills",
+  "version": "1.0.0",
+  "skills": [
+    "./skills/"
+  ],
+  "keywords": [
+    "tron", "tronlink", "trx", "trc20", "defi", "wallet",
+    "staking", "energy", "bandwidth", "sunswap", "web3"
+  ]
+}
