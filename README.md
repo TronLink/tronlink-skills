@@ -1,4 +1,4 @@
-# TronLink Wallet Skills (Node.js)
+# TronLink Wallet Skills
 
 AI Agent skills for TronLink wallet and the TRON ecosystem. Provides wallet management, token queries, market data, DEX swap, resource (Energy/Bandwidth) management, and TRX staking across the TRON network.
 
