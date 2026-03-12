@@ -247,4 +247,4 @@ await contract.approve('TRouterAddr', '0xffffffff...').send();
 
 ## License
 
-MIT
+MIT License Copyright (c) 2026 TronLink
