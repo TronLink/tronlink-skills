@@ -13,7 +13,7 @@ TRON has a unique resource model (Energy & Bandwidth) that differs fundamentally
 ### Recommended (auto-detects your AI environment)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/example/tronlink-skills/main/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/TronLink/tronlink-skills/main/install.sh | sh
 ```
 
 This automatically detects Claude Code, Cursor, Codex, OpenCode, or Windsurf and configures everything.
@@ -25,7 +25,7 @@ This automatically detects Claude Code, Cursor, Codex, OpenCode, or Windsurf and
 sh uninstall.sh
 
 # Or run remotely:
-curl -sSL https://raw.githubusercontent.com/example/tronlink-skills/main/uninstall.sh | sh
+curl -sSL https://raw.githubusercontent.com/TronLink/tronlink-skills/main/uninstall.sh | sh
 ```
 
 Removes MCP registrations, symlinks, copied config files, and `~/.tronlink-skills`.
@@ -34,10 +34,10 @@ Removes MCP registrations, symlinks, copied config files, and `~/.tronlink-skill
 
 ```bash
 # Option A: Vercel Skills CLI
-npx skills add example/tronlink-skills
+npx skills add TronLink/tronlink-skills
 
 # Option B: Claude Code plugin marketplace
-/plugin marketplace add example/tronlink-skills
+/plugin marketplace add TronLink/tronlink-skills
 /plugin install tronlink-skills
 
 # Option C: MCP Server (manual)
@@ -47,13 +47,13 @@ claude mcp add tronlink -- node ~/.tronlink-skills/scripts/mcp_server.mjs
 ### Cursor / Windsurf
 
 ```bash
-npx skills add example/tronlink-skills
+npx skills add TronLink/tronlink-skills
 ```
 
 ### Codex CLI
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/example/tronlink-skills/main/.codex/INSTALL.md
+Fetch and follow instructions from https://raw.githubusercontent.com/TronLink/tronlink-skills/main/.codex/INSTALL.md
 ```
 
 ## Available Skills
@@ -71,7 +71,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/example/tro
 
 ```bash
 # Clone the repo
-git clone https://github.com/example/tronlink-skills.git
+git clone https://github.com/TronLink/tronlink-skills.git
 cd tronlink-skills
 
 # Optional: install TronWeb for signing operations

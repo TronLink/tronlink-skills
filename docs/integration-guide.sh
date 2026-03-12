@@ -11,7 +11,7 @@
 npm install -g @anthropic-ai/claude-code
 
 # 2. Clone TronLink Skills into your project
-git clone https://github.com/example/tronlink-skills.git
+git clone https://github.com/TronLink/tronlink-skills.git
 cd tronlink-skills
 
 # 3. (Optional) Install tronweb for signing operations
@@ -41,7 +41,7 @@ claude
 # ────────────────────────────────────────────────────────────
 
 # 1. Clone into your project directory
-git clone https://github.com/example/tronlink-skills.git
+git clone https://github.com/TronLink/tronlink-skills.git
 
 # 2. Open the project in Cursor, the Agent will automatically read SKILL.md
 # 3. Use natural language instructions in Cursor Chat

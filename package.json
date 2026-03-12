@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/example/tronlink-skills"
+    "url": "https://github.com/TronLink/tronlink-skills"
   },
   "engines": {
     "node": ">=18.0.0"

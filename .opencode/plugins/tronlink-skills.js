@@ -4,7 +4,7 @@
  * Injects TronLink skill context via system prompt transform.
  *
  * Installation:
- *   git clone https://github.com/example/tronlink-skills ~/.config/opencode/tronlink-skills
+ *   git clone https://github.com/TronLink/tronlink-skills ~/.config/opencode/tronlink-skills
  *   ln -s ~/.config/opencode/tronlink-skills/.opencode/plugins/tronlink-skills.js ~/.config/opencode/plugins/tronlink-skills.js
  *   ln -s ~/.config/opencode/tronlink-skills/skills ~/.config/opencode/skills/tronlink-skills
  */

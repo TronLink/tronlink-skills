@@ -75,86 +75,6 @@ const KNOWN_TOKENS = {
   SUN:  { contract: "TSSMHYeV2uE9qYH95DqyoCuNCzEL1NvU3S", symbol: "SUN",  decimals: 18, name: "SUN Token" },
   WIN:  { contract: "TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7", symbol: "WIN",  decimals: 6,  name: "WINkLink" },
 };
-const DEFAULT_READ_ADDRESS = process.env.TRON_READ_ADDRESS || "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
-const TOKEN_METADATA_CACHE = new Map();
-
-function getTronWebCtor(mod) {
-  return mod?.TronWeb || mod?.default?.TronWeb || mod?.default || null;
-}
-
-function decodeUint256Hex(hex) {
-  if (!hex) return "0";
-  const clean = hex.startsWith("0x") ? hex.slice(2) : hex;
-  if (!clean) return "0";
-  return BigInt(`0x${clean}`).toString();
-}
-
-function decodeAbiString(hex) {
-  if (!hex) return "";
-  const clean = hex.startsWith("0x") ? hex.slice(2) : hex;
-  if (!clean) return "";
-
-  try {
-    const offsetBytes = parseInt(clean.slice(0, 64), 16);
-    if (Number.isFinite(offsetBytes)) {
-      const offset = offsetBytes * 2;
-      if (clean.length >= offset + 64) {
-        const lenBytes = parseInt(clean.slice(offset, offset + 64), 16);
-        const dataStart = offset + 64;
-        const dataEnd = dataStart + (lenBytes * 2);
-        if (Number.isFinite(lenBytes) && clean.length >= dataEnd) {
-          return Buffer.from(clean.slice(dataStart, dataEnd), "hex").toString("utf8");
-        }
-      }
-    }
-  } catch {}
-
-  try {
-    return Buffer.from(clean, "hex").toString("utf8").replace(/\0+$/g, "").trim();
-  } catch {
-    return "";
-  }
-}
-
-async function triggerContractConstant(contract, functionSelector) {
-  return httpPost(`${BASE_URL}/wallet/triggerconstantcontract`, {
-    owner_address: DEFAULT_READ_ADDRESS,
-    contract_address: contract,
-    function_selector: functionSelector,
-    visible: true,
-  });
-}
-
-async function fetchTokenTotalSupply(contract) {
-  const data = await triggerContractConstant(contract, "totalSupply()");
-  const raw = data?.constant_result?.[0];
-  return raw ? decodeUint256Hex(raw) : "0";
-}
-
-async function fetchTokenMetadata(contract) {
-  const cached = TOKEN_METADATA_CACHE.get(contract);
-  if (cached) return cached;
-
-  const fallback = { contract, symbol: contract.slice(0, 8), decimals: 6, name: "Unknown" };
-  const [symbolData, decimalsData, nameData] = await Promise.all([
-    triggerContractConstant(contract, "symbol()"),
-    triggerContractConstant(contract, "decimals()"),
-    triggerContractConstant(contract, "name()"),
-  ]);
-
-  const symbol = decodeAbiString(symbolData?.constant_result?.[0]) || fallback.symbol;
-  const name = decodeAbiString(nameData?.constant_result?.[0]) || fallback.name;
-  const decimals = parseInt(decodeUint256Hex(decimalsData?.constant_result?.[0] || "0"), 10);
-
-  const meta = {
-    contract,
-    symbol,
-    decimals: Number.isFinite(decimals) && decimals >= 0 ? decimals : fallback.decimals,
-    name,
-  };
-  TOKEN_METADATA_CACHE.set(contract, meta);
-  return meta;
-}
 
 // ---------------------------------------------------------------------------
 // HTTP Helpers
@@ -188,14 +108,9 @@ async function httpGet(url, params = {}) {
 
 async function httpPost(url, body = {}) {
   try {
-    let fullUrl = url;
-    if (url.includes("tronscanapi.com") && TRONSCAN_API_KEY) {
-      const join = url.includes("?") ? "&" : "?";
-      fullUrl = `${url}${join}apikey=${encodeURIComponent(TRONSCAN_API_KEY)}`;
-    }
-    const resp = await fetch(fullUrl, {
+    const resp = await fetch(url, {
       method: "POST",
-      headers: headers(fullUrl),  // Pass URL to headers()
+      headers: headers(url),  // Pass URL to headers()
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(15000),
     });
@@ -280,14 +195,10 @@ function normalizeAddress(addr) {
   return addr;
 }
 
-async function resolveToken(input) {
-  const normalized = normalizeAddress(input);
-  const upper = normalized.toUpperCase();
+function resolveToken(input) {
+  const upper = input.toUpperCase();
   if (KNOWN_TOKENS[upper]) return KNOWN_TOKENS[upper];
-  if (!isValidTronAddress(normalized)) {
-    return { contract: normalized, symbol: normalized.slice(0, 8), decimals: 6, name: "Unknown" };
-  }
-  return fetchTokenMetadata(normalized);
+  return { contract: input, symbol: input.slice(0, 8), decimals: 6, name: "Unknown" };
 }
 
 // ---------------------------------------------------------------------------
@@ -318,7 +229,7 @@ async function cmdWalletBalance({ address }) {
 
 async function cmdTokenBalance({ address, contract }) {
   address = normalizeAddress(address);
-  const tokenInfo = await resolveToken(contract);
+  const tokenInfo = resolveToken(contract);
   contract = tokenInfo.contract;
 
   const data = await httpGet(`${BASE_URL}/v1/accounts/${address}`);
@@ -438,7 +349,7 @@ async function cmdValidateAddress({ address }) {
 // ---------------------------------------------------------------------------
 
 async function cmdTokenInfo({ contract }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const scanData = await httpGet(`${TRONSCAN_API}/token_trc20`, { contract });
@@ -519,54 +430,36 @@ async function cmdTokenSearch({ keyword }) {
 }
 
 async function cmdContractInfo({ contract }) {
-  const [data, solidityInfo] = await Promise.all([
-    httpGet(`${TRONSCAN_API}/token_trc20`, { contract }),
-    httpPost(`${TRONSCAN_API}/solidity/contract/info`, { contractAddress: contract }),
-  ]);
-  const c = data.trc20_tokens?.[0] || {};
-  const solidity = solidityInfo?.data || {};
+  const data = await httpGet(`${TRONSCAN_API}/contract`, { contract });
+  const c = data.data?.[0] || {};
   console.log(fmt({
     contract,
     name: c.name || "Unknown",
-    verified: solidity.status ?? c.verify_status ?? 0,
-    creator: c?.issue_address || "",
-    creation_time: c.issue_time || "",
+    verified: c.verify_status || 0,
+    creator: c.creator?.address || "",
+    creation_time: c.date_created || "",
     energy_factor: c.consume_user_resource_percent || 0,
   }));
 }
 
 async function cmdTokenHolders({ contract, limit = 20 }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
-  const [data, totalSupplyRaw] = await Promise.all([
-    httpGet(`${TRONSCAN_API}/token_trc20/holders`, {
-      contract_address: contract, limit, start: 0,
-    }),
-    fetchTokenTotalSupply(contract),
-  ]);
-  const totalHolders = data.rangeTotal || 0;
-  const totalSupply = BigInt(totalSupplyRaw || "0");
+  const data = await httpGet(`${TRONSCAN_API}/token_trc20/holders`, {
+    contract_address: contract, limit, start: 0,
+  });
+  const totalSupply = data.rangeTotal || 0;
   const holders = (data.trc20_tokens || []).map(h => {
-    const balRaw = h.balance || "0";
-    const bal = parseFloat(balRaw);
-    const percentage = totalSupply > 0n
-      ? `${((Number(BigInt(balRaw) * 100000000n / totalSupply)) / 1000000).toFixed(6)}%`
-      : "N/A";
+    const bal = parseFloat(h.balance || 0);
     return {
       address: h.holder_address || "",
       address_tag: h.addressTag || "",
       balance: bal,
-      percentage,
+      percentage: totalSupply > 0 ? ((bal / totalSupply) * 100).toFixed(4) + "%" : "N/A",
     };
   });
-  console.log(fmt({
-    contract,
-    holders,
-    total_holders: totalHolders,
-    total_supply_raw: totalSupplyRaw,
-    count: holders.length,
-  }));
+  console.log(fmt({ contract, holders, total_holders: totalSupply, count: holders.length }));
 }
 
 async function cmdTrendingTokens() {
@@ -616,7 +509,7 @@ async function cmdTokenRankings({ sortBy = "market_cap" }) {
 }
 
 async function cmdTokenSecurity({ contract }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const [contractData, holderData, tokenData] = await Promise.all([
@@ -681,7 +574,7 @@ async function cmdTokenPrice({ contract }) {
     }));
   }
 
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const data = await httpGet(`${TRONSCAN_API}/token_trc20`, { contract });
@@ -700,7 +593,7 @@ async function cmdTokenPrice({ contract }) {
 }
 
 async function cmdKline({ contract, interval = "1h", limit = 100 }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
 
   // Map interval to CoinGecko days parameter
   const intervalToDays = { "1m": 1, "5m": 1, "15m": 1, "1h": 1, "4h": 7, "1d": 30, "1w": 180 };
@@ -743,7 +636,7 @@ async function cmdKline({ contract, interval = "1h", limit = 100 }) {
 }
 
 async function cmdTradeHistory({ contract, limit = 50 }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const data = await httpGet(`${TRONSCAN_API}/token_trc20/transfers`, {
@@ -768,7 +661,7 @@ async function cmdTradeHistory({ contract, limit = 50 }) {
 }
 
 async function cmdDexVolume({ contract, period = "24h" }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const data = await httpGet(`${TRONSCAN_API}/token_trc20`, { contract });
@@ -788,7 +681,7 @@ async function cmdDexVolume({ contract, period = "24h" }) {
 }
 
 async function cmdWhaleTransfers({ contract, minValue = 100000 }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const data = await httpGet(`${TRONSCAN_API}/token_trc20/transfers`, {
@@ -874,18 +767,16 @@ async function cmdMarketOverview() {
 // ---------------------------------------------------------------------------
 
 async function cmdSwapQuote({ fromToken, toToken, amount }) {
-  const fromInfo = await resolveToken(fromToken);
-  const toInfo = await resolveToken(toToken);
-  // Use BigInt to avoid scientific notation for high-decimal tokens (e.g. 18 decimals)
-  const amountRaw = BigInt(Math.round(parseFloat(amount) * (10 ** fromInfo.decimals)));
+  const fromInfo = resolveToken(fromToken);
+  const toInfo = resolveToken(toToken);
+  const amountRaw = Math.round(parseFloat(amount) * (10 ** fromInfo.decimals));
 
   // Sun.io Smart Router requires WTRX address instead of native TRX
   const WTRX_ADDRESS = KNOWN_TOKENS.WTRX?.contract || "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR";
   const fromAddr = fromInfo.contract === "TRX" ? WTRX_ADDRESS : fromInfo.contract;
-  const toAddr = toInfo.contract === "TRX" ? WTRX_ADDRESS : toInfo.contract;
 
   const data = await httpGet(`${SWAP_ROUTER_BASE}/swap/router`, {
-    fromToken: fromAddr, toToken: toAddr,
+    fromToken: fromAddr, toToken: toInfo.contract,
     amountIn: String(amountRaw),
     typeList: "PSM,CURVE,WTRX,SUNSWAP_V2,SUNSWAP_V3",
   });
@@ -945,30 +836,19 @@ async function cmdSwapExecute({ fromToken, toToken, amount, slippage = "0.5" }) 
 }
 
 async function cmdTxStatus({ txid }) {
-  const data = await httpPost(`${BASE_URL}/wallet/gettransactioninfobyid`, { value: txid });
-  if (data.error) return console.log(fmt({ error: data.error }));
+  const data = await httpGet(`${BASE_URL}/v1/transactions/${txid}`);
+  if (data.error || !data.data?.length) return console.log(fmt({ error: `Transaction ${txid} not found` }));
 
-  const tx = data?.data?.[0] || data;
-  if (!tx || (!tx.id && !tx.txid && !tx.blockNumber && !tx.block_number)) {
-    return console.log(fmt({ error: `Transaction ${txid} not found` }));
-  }
+  const tx = data.data[0];
   const receipt = tx.receipt || {};
-  const status =
-    receipt.result ||
-    tx?.ret?.[0]?.contractRet ||
-    tx.contractRet ||
-    "UNKNOWN";
-  const timestamp = tx.blockTimeStamp || tx.block_timestamp || null;
-  const totalFee = tx.fee || receipt.energy_fee || receipt.net_fee || 0;
 
   console.log(fmt({
     txid,
-    status,
-    block_number: tx.blockNumber || tx.block_number || 0,
-    timestamp: timestamp ? new Date(timestamp).toISOString() : null,
+    status: (tx.ret || [{}])[0].contractRet || "UNKNOWN",
+    block_number: tx.blockNumber || 0,
+    timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toISOString() : null,
     energy_used: receipt.energy_usage_total || 0,
     bandwidth_used: receipt.net_usage || 0,
-    total_fee_sun: totalFee,
     energy_fee_sun: receipt.energy_fee || 0,
     net_fee_sun: receipt.net_fee || 0,
     tronscan_url: `https://tronscan.org/#/transaction/${txid}`,
@@ -1016,7 +896,7 @@ async function cmdResourceInfo({ address }) {
 }
 
 async function cmdEstimateEnergy({ contract, func, params = "", caller }) {
-  const resolved = await resolveToken(contract);
+  const resolved = resolveToken(contract);
   contract = resolved.contract;
 
   const data = await httpPost(`${BASE_URL}/wallet/triggerconstantcontract`, {
@@ -1286,8 +1166,7 @@ async function cmdSendTrx({ from, to, amount }) {
   }
 
   try {
-    const TronWeb = getTronWebCtor(await import("tronweb"));
-    if (!TronWeb) throw new Error("Unsupported tronweb export shape");
+    const { default: TronWeb } = await import("tronweb");
     const tronWeb = new TronWeb({ fullHost: BASE_URL, privateKey });
     const tx = await tronWeb.trx.sendTransaction(to, trxToSun(parseFloat(amount)));
     console.log(fmt({
@@ -1302,7 +1181,7 @@ async function cmdSendTrx({ from, to, amount }) {
 }
 
 async function cmdSendToken({ from, to, contract, amount }) {
-  const tokenInfo = await resolveToken(contract);
+  const tokenInfo = resolveToken(contract);
   contract = tokenInfo.contract;
   const privateKey = loadPrivateKey();
 
@@ -1310,7 +1189,6 @@ async function cmdSendToken({ from, to, contract, amount }) {
     return console.log(fmt({
       action: "send_token", from, to, contract, amount,
       symbol: tokenInfo.symbol,
-      decimals: tokenInfo.decimals,
       status: "⚠️ CONFIRMATION REQUIRED — set TRON_PRIVATE_KEY or TRON_PRIVATE_KEY_FILE to execute",
       setup: [
         "export TRON_PRIVATE_KEY='your-hex-private-key'",
@@ -1321,8 +1199,7 @@ async function cmdSendToken({ from, to, contract, amount }) {
   }
 
   try {
-    const TronWeb = getTronWebCtor(await import("tronweb"));
-    if (!TronWeb) throw new Error("Unsupported tronweb export shape");
+    const { default: TronWeb } = await import("tronweb");
     const tronWeb = new TronWeb({ fullHost: BASE_URL, privateKey });
     const instance = await tronWeb.contract().at(contract);
     const rawAmount = Math.round(parseFloat(amount) * (10 ** tokenInfo.decimals));
@@ -1331,7 +1208,6 @@ async function cmdSendToken({ from, to, contract, amount }) {
       action: "send_token", status: "SUCCESS",
       txid: tx, from, to, contract, amount: parseFloat(amount),
       symbol: tokenInfo.symbol,
-      decimals: tokenInfo.decimals,
       tronscan_url: `https://tronscan.org/#/transaction/${tx}`,
     }));
   } catch (e) {

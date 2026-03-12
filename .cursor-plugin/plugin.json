@@ -5,7 +5,7 @@
   "author": {
     "name": "tronlink-skills"
   },
-  "repository": "https://github.com/example/tronlink-skills",
+  "repository": "https://github.com/TronLink/tronlink-skills",
   "license": "MIT",
   "keywords": [
     "tron", "tronlink", "trx", "trc20", "defi", "wallet",

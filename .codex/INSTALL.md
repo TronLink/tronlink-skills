@@ -10,7 +10,7 @@
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/example/tronlink-skills ~/.codex/tronlink-skills
+   git clone https://github.com/TronLink/tronlink-skills ~/.codex/tronlink-skills
    ```
 
 2. **Create the skills symlink:**

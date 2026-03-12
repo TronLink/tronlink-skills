@@ -12,7 +12,7 @@ set -e
 # Usage:
 #   sh uninstall.sh
 #   # or, if already removed locally:
-#   curl -sSL https://raw.githubusercontent.com/example/tronlink-skills/main/uninstall.sh | sh
+#   curl -sSL https://raw.githubusercontent.com/TronLink/tronlink-skills/main/uninstall.sh | sh
 # ──────────────────────────────────────────────────────────────
 
 INSTALL_DIR="$HOME/.tronlink-skills"

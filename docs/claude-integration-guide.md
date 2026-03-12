@@ -21,7 +21,7 @@ Claude Code is Anthropic's command-line AI agent that can directly read SKILL.md
 npm install -g @anthropic-ai/claude-code
 
 # 2. Clone the project
-git clone https://github.com/example/tronlink-skills.git
+git clone https://github.com/TronLink/tronlink-skills.git
 cd tronlink-skills
 
 # 3. (Optional) Install signing dependencies
@@ -156,7 +156,7 @@ Use tron_api.mjs to run a security audit on the USDT contract TR7NHqjeKQxGTCi8q8
 
 ```bash
 # Clone into project directory
-git clone https://github.com/example/tronlink-skills.git
+git clone https://github.com/TronLink/tronlink-skills.git
 
 # Open in Cursor, Agent automatically reads SKILL.md
 # Or use MCP method:

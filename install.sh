@@ -5,7 +5,7 @@ set -e
 # TronLink Skills — One-Command Installer
 #
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/example/tronlink-skills/main/install.sh | sh
+#   curl -sSL https://raw.githubusercontent.com/TronLink/tronlink-skills/main/install.sh | sh
 #
 # Local development (no GitHub needed):
 #   sh install.sh --local /path/to/tronlink-skills
@@ -18,7 +18,7 @@ set -e
 #   - Other        → clones to ~/.tronlink-skills for manual use
 # ──────────────────────────────────────────────────────────────
 
-REPO="example/tronlink-skills"
+REPO="TronLink/tronlink-skills"
 REPO_URL="https://github.com/${REPO}.git"
 INSTALL_DIR="$HOME/.tronlink-skills"
 VERSION="1.0.0"
