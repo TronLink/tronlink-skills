@@ -10,7 +10,7 @@ metadata:
 
 # TRON Staking (Stake 2.0)
 
-9 commands for freeze, unfreeze, withdraw, vote, claim rewards, SR list, staking info, delegation, and APY estimation.
+3 commands for SR list, staking info, and APY estimation (read-only queries).
 
 ## TRON Stake 2.0 — Essential Knowledge
 
@@ -27,68 +27,7 @@ Freeze TRX → Get Energy or Bandwidth → Vote for SR → Earn Rewards → Unfr
 
 ## Commands
 
-### Signing Setup (required for commands 1-5)
-
-```bash
-# Set private key via environment variable (never pass on command line)
-export TRON_PRIVATE_KEY='your-hex-private-key'
-# Or use a key file:
-export TRON_PRIVATE_KEY_FILE='/path/to/keyfile.txt'
-```
-
-### 1. Freeze TRX
-
-```bash
-node scripts/tron_api.mjs stake-freeze \
-  --amount <TRX_AMOUNT> \
-  --resource <ENERGY|BANDWIDTH>
-```
-
-⚠️ **Human-in-the-loop**: Always confirm the amount and resource type before executing.
-
-Frozen TRX immediately generates the corresponding resource but is locked for a minimum of 14 days.
-
-### 2. Unfreeze TRX
-
-```bash
-node scripts/tron_api.mjs stake-unfreeze \
-  --amount <TRX_AMOUNT> \
-  --resource <ENERGY|BANDWIDTH>
-```
-
-⚠️ Unfreezing starts a **14-day waiting period**. TRX is NOT immediately available.
-
-### 3. Withdraw Unfrozen TRX
-
-```bash
-node scripts/tron_api.mjs stake-withdraw
-```
-
-Withdraws TRX that has completed the 14-day waiting period after unfreeze.
-
-### 4. Vote for Super Representative
-
-```bash
-node scripts/tron_api.mjs vote \
-  --votes '<SR_ADDRESS_1>:<VOTE_COUNT>,<SR_ADDRESS_2>:<VOTE_COUNT>'
-```
-
-Rules:
-- 1 frozen TRX = 1 TRON Power (TP) = 1 vote
-- You can split votes across multiple SRs
-- Total votes cannot exceed your TRON Power
-- Votes reset if you unfreeze; re-vote after re-freezing
-- Voting is FREE (no energy/bandwidth cost)
-
-### 5. Claim Staking Rewards
-
-```bash
-node scripts/tron_api.mjs claim-rewards
-```
-
-Claims accumulated voting rewards. Rewards accumulate every 6 hours (maintenance cycle).
-
-### 6. Super Representative List
+### 1. Super Representative List
 
 ```bash
 node scripts/tron_api.mjs sr-list --limit 30
@@ -96,7 +35,7 @@ node scripts/tron_api.mjs sr-list --limit 30
 
 Returns: SR name, address, total votes, vote percentage, block production rate, APY estimate, commission rate.
 
-### 7. My Staking Info
+### 2. My Staking Info
 
 ```bash
 node scripts/tron_api.mjs staking-info --address <TRON_ADDRESS>
@@ -111,19 +50,7 @@ Returns:
 - Pending unfreezes (amount, unlock date)
 - Delegated resources (to whom, amount)
 
-### 8. Delegate Staked Resources
-
-```bash
-node scripts/tron_api.mjs delegate-resource \
-  --to <RECIPIENT_ADDRESS> \
-  --resource <ENERGY|BANDWIDTH> \
-  --amount <TRX_AMOUNT> \
-  --lock-period <DAYS>
-```
-
-Delegates Energy or Bandwidth to another address without transferring TRX. Minimum lock: 0 days (can reclaim anytime).
-
-### 9. APY Estimation
+### 3. APY Estimation
 
 ```bash
 node scripts/tron_api.mjs staking-apy --amount <TRX_TO_STAKE>
