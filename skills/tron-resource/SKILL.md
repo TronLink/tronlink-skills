@@ -10,7 +10,7 @@ metadata:
 
 # TRON Resource Management (Energy & Bandwidth)
 
-7 commands for resource query, energy estimation, bandwidth estimation, energy price, resource delegation, delegation marketplace, and cost optimization.
+6 commands for resource query, energy estimation, bandwidth estimation, energy price, energy rental marketplace, and cost optimization.
 
 ## TRON Resource Model — Essential Knowledge
 
@@ -59,7 +59,7 @@ node scripts/tron_api.mjs estimate-energy \
   --contract <CONTRACT_ADDRESS> \
   --function <FUNCTION_SIGNATURE> \
   --params <PARAMS> \
-  --from <CALLER_ADDRESS>
+  --caller <CALLER_ADDRESS>
 ```
 
 Shortcut for common operations:
@@ -69,7 +69,7 @@ node scripts/tron_api.mjs estimate-energy \
   --contract TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t \
   --function "transfer(address,uint256)" \
   --params "<TO_ADDRESS>,1000000" \
-  --from <YOUR_ADDRESS>
+  --caller <YOUR_ADDRESS>
 ```
 
 Returns: estimated Energy consumption and equivalent TRX cost.
@@ -90,20 +90,7 @@ node scripts/tron_api.mjs energy-price
 
 Returns: current Energy price in SUN (1 TRX = 1,000,000 SUN), TRX cost per 10,000 Energy, and recent price trend.
 
-### 5. Resource Delegation (Send Energy to Another Address)
-
-```bash
-node scripts/tron_api.mjs delegate-resource \
-  --from <FROM_ADDRESS> \
-  --to <TO_ADDRESS> \
-  --resource <ENERGY|BANDWIDTH> \
-  --amount <TRX_AMOUNT_TO_DELEGATE> \
-  --lock-period <DAYS>
-```
-
-⚠️ Delegation does NOT transfer TRX — it shares the staked resources. TRX remains in the delegator's account.
-
-### 6. Resource Rental Marketplace
+### 5. Resource Rental Marketplace
 
 ```bash
 node scripts/tron_api.mjs energy-rental --amount <ENERGY_NEEDED>
@@ -116,7 +103,7 @@ Common rental platforms:
 - JustLend Energy Rental
 - Community energy providers
 
-### 7. Cost Optimization Report
+### 6. Cost Optimization Report
 
 ```bash
 node scripts/tron_api.mjs optimize-cost --address <TRON_ADDRESS>

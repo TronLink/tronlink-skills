@@ -7,13 +7,11 @@
  * resource (Energy/Bandwidth) management, and TRX staking on the TRON network.
  *
  * Requirements: Node.js >= 18 (uses native fetch)
- * Optional: npm install tronweb (for signing operations)
  *
  * Usage: node tron_api.mjs <command> [options]
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 
 // ---------------------------------------------------------------------------
@@ -30,7 +28,6 @@ const TRON_NETWORKS = {
 const NETWORK = process.env.TRON_NETWORK || "mainnet";
 const BASE_URL = TRON_NETWORKS[NETWORK] || TRON_NETWORKS.mainnet;
 const TRONSCAN_API = "https://apilist.tronscanapi.com/api";
-const SUNSWAP_V2_ROUTER = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax";
 const SUN_PER_TRX = 1_000_000;
 
 // Sun.io Smart Router API — official backend endpoints extracted from sun.io frontend bundle.
@@ -45,25 +42,6 @@ const SWAP_ROUTER_BASE = SUNIO_ROUTER_API[NETWORK] || SUNIO_ROUTER_API.mainnet;
 // CoinGecko free API — used as fallback for market data when TronScan endpoints are unavailable
 const COINGECKO_API = "https://api.coingecko.com/api/v3";
 
-// ---------------------------------------------------------------------------
-// Private Key Resolution (env var or file — never CLI argument)
-// ---------------------------------------------------------------------------
-
-function loadPrivateKey() {
-  if (process.env.TRON_PRIVATE_KEY) {
-    return process.env.TRON_PRIVATE_KEY.trim();
-  }
-  const keyFile = process.env.TRON_PRIVATE_KEY_FILE;
-  if (keyFile) {
-    try {
-      return readFileSync(keyFile, "utf-8").trim();
-    } catch (e) {
-      console.error(`Error reading private key file: ${e.message}`);
-      return "";
-    }
-  }
-  return "";
-}
 
 const KNOWN_TOKENS = {
   TRX:  { contract: "TRX", symbol: "TRX",  decimals: 6,  name: "TRON" },
@@ -808,49 +786,27 @@ async function cmdSwapQuote({ fromToken, toToken, amount }) {
   }));
 }
 
-async function cmdSwapApprove({ contract, spender }) {
-  spender = spender || SUNSWAP_V2_ROUTER;
-  console.log(fmt({
-    action: "approve",
-    token_contract: contract,
-    spender,
-    note: "⚠️ This requires signing. Set TRON_PRIVATE_KEY env var.",
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-    estimated_energy: 30000,
-  }));
-}
-
-async function cmdSwapExecute({ fromToken, toToken, amount, slippage = "0.5" }) {
-  console.log(fmt({
-    action: "swap",
-    from: fromToken, to: toToken, amount, slippage,
-    status: "⚠️ CONFIRMATION REQUIRED",
-    note: "This operation will move funds. Review details above and confirm.",
-    steps: [
-      "1. Run swap-quote to verify expected output",
-      "2. Check resource-info for energy availability",
-      "3. Approve token if needed (swap-approve)",
-      "4. Sign and broadcast via TronLink or TronWeb",
-    ],
-  }));
-}
 
 async function cmdTxStatus({ txid }) {
-  const data = await httpGet(`${BASE_URL}/v1/transactions/${txid}`);
-  if (data.error || !data.data?.length) return console.log(fmt({ error: `Transaction ${txid} not found` }));
+  // Use full-node API to get transaction and its on-chain receipt
+  const [txData, infoData] = await Promise.all([
+    httpPost(`${BASE_URL}/wallet/gettransactionbyid`, { value: txid }),
+    httpPost(`${BASE_URL}/wallet/gettransactioninfobyid`, { value: txid }),
+  ]);
 
-  const tx = data.data[0];
-  const receipt = tx.receipt || {};
+  if (txData.error || !txData.txID) return console.log(fmt({ error: `Transaction ${txid} not found` }));
+
+  const receipt = infoData.receipt || {};
 
   console.log(fmt({
     txid,
-    status: (tx.ret || [{}])[0].contractRet || "UNKNOWN",
-    block_number: tx.blockNumber || 0,
-    timestamp: tx.block_timestamp ? new Date(tx.block_timestamp).toISOString() : null,
+    status: (txData.ret || [{}])[0].contractRet || "UNKNOWN",
+    block_number: infoData.blockNumber || 0,
+    timestamp: infoData.blockTimeStamp ? new Date(infoData.blockTimeStamp).toISOString() : null,
     energy_used: receipt.energy_usage_total || 0,
-    bandwidth_used: receipt.net_usage || 0,
+    bandwidth_used: receipt.net_usage || infoData.receipt?.net_usage || 0,
     energy_fee_sun: receipt.energy_fee || 0,
-    net_fee_sun: receipt.net_fee || 0,
+    net_fee_sun: receipt.net_fee || infoData.fee || 0,
     tronscan_url: `https://tronscan.org/#/transaction/${txid}`,
   }));
 }
@@ -945,16 +901,6 @@ async function cmdEnergyPrice() {
   }));
 }
 
-async function cmdDelegateResource({ from, to, resource, amount, lockPeriod = 0 }) {
-  console.log(fmt({
-    action: "delegate_resource",
-    from, to, resource, amount_trx: amount,
-    lock_period_days: lockPeriod,
-    status: "⚠️ CONFIRMATION REQUIRED",
-    note: "Delegation shares staked resources without transferring TRX. Set TRON_PRIVATE_KEY env var to sign.",
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-  }));
-}
 
 async function cmdEnergyRental({ amount = 65000 }) {
   console.log(fmt({
@@ -1035,53 +981,6 @@ async function cmdOptimizeCost({ address }) {
 // Staking Commands
 // ---------------------------------------------------------------------------
 
-async function cmdStakeFreeze({ amount, resource }) {
-  console.log(fmt({
-    action: "freeze_trx", amount_trx: amount, resource,
-    status: "⚠️ CONFIRMATION REQUIRED",
-    lock_period: "14 days minimum",
-    note: `This will freeze ${amount} TRX for ${resource}. TRX remains in your account but cannot be transferred for at least 14 days.`,
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-  }));
-}
-
-async function cmdStakeUnfreeze({ amount, resource }) {
-  console.log(fmt({
-    action: "unfreeze_trx", amount_trx: amount, resource,
-    status: "⚠️ CONFIRMATION REQUIRED",
-    note: `Unfreezing starts a 14-day waiting period. After 14 days, run 'stake-withdraw' to claim TRX.`,
-    warning: "Unfreezing removes your voting power. Re-vote after re-freezing.",
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-  }));
-}
-
-async function cmdStakeWithdraw() {
-  console.log(fmt({
-    action: "withdraw_unfrozen",
-    status: "⚠️ CONFIRMATION REQUIRED",
-    note: "Withdraws all TRX that has completed the 14-day unfreeze waiting period.",
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-  }));
-}
-
-async function cmdVote({ votes }) {
-  console.log(fmt({
-    action: "vote_sr", votes,
-    status: "⚠️ CONFIRMATION REQUIRED",
-    note: "Voting is free (no energy/bandwidth cost). 1 frozen TRX = 1 vote.",
-    reward_info: "Rewards accumulate every 6 hours. Claim with 'claim-rewards'.",
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-  }));
-}
-
-async function cmdClaimRewards() {
-  console.log(fmt({
-    action: "claim_rewards",
-    status: "⚠️ CONFIRMATION REQUIRED",
-    note: "Claims all accumulated voting rewards to your account.",
-    setup: "export TRON_PRIVATE_KEY='your-hex-private-key'",
-  }));
-}
 
 async function cmdSrList({ limit = 30 }) {
   const data = await httpGet(`${TRONSCAN_API}/vote/witness`, { limit, start: 0 });
@@ -1147,73 +1046,6 @@ async function cmdStakingApy({ amount = "10000" }) {
   }));
 }
 
-// ---------------------------------------------------------------------------
-// Send Commands (with TronWeb signing)
-// ---------------------------------------------------------------------------
-
-async function cmdSendTrx({ from, to, amount }) {
-  const privateKey = loadPrivateKey();
-  if (!privateKey) {
-    return console.log(fmt({
-      action: "send_trx", from, to, amount_trx: amount,
-      status: "⚠️ CONFIRMATION REQUIRED — set TRON_PRIVATE_KEY or TRON_PRIVATE_KEY_FILE to execute",
-      setup: [
-        "export TRON_PRIVATE_KEY='your-hex-private-key'",
-        "# or",
-        "export TRON_PRIVATE_KEY_FILE='/path/to/keyfile.txt'",
-      ],
-    }));
-  }
-
-  try {
-    const { default: TronWeb } = await import("tronweb");
-    const tronWeb = new TronWeb({ fullHost: BASE_URL, privateKey });
-    const tx = await tronWeb.trx.sendTransaction(to, trxToSun(parseFloat(amount)));
-    console.log(fmt({
-      action: "send_trx", status: "SUCCESS",
-      txid: tx.txid || tx.transaction?.txID,
-      from, to, amount_trx: parseFloat(amount),
-      tronscan_url: `https://tronscan.org/#/transaction/${tx.txid || tx.transaction?.txID}`,
-    }));
-  } catch (e) {
-    console.log(fmt({ error: `Send failed: ${e.message}`, hint: "npm install tronweb" }));
-  }
-}
-
-async function cmdSendToken({ from, to, contract, amount }) {
-  const tokenInfo = resolveToken(contract);
-  contract = tokenInfo.contract;
-  const privateKey = loadPrivateKey();
-
-  if (!privateKey) {
-    return console.log(fmt({
-      action: "send_token", from, to, contract, amount,
-      symbol: tokenInfo.symbol,
-      status: "⚠️ CONFIRMATION REQUIRED — set TRON_PRIVATE_KEY or TRON_PRIVATE_KEY_FILE to execute",
-      setup: [
-        "export TRON_PRIVATE_KEY='your-hex-private-key'",
-        "# or",
-        "export TRON_PRIVATE_KEY_FILE='/path/to/keyfile.txt'",
-      ],
-    }));
-  }
-
-  try {
-    const { default: TronWeb } = await import("tronweb");
-    const tronWeb = new TronWeb({ fullHost: BASE_URL, privateKey });
-    const instance = await tronWeb.contract().at(contract);
-    const rawAmount = Math.round(parseFloat(amount) * (10 ** tokenInfo.decimals));
-    const tx = await instance.transfer(to, rawAmount).send();
-    console.log(fmt({
-      action: "send_token", status: "SUCCESS",
-      txid: tx, from, to, contract, amount: parseFloat(amount),
-      symbol: tokenInfo.symbol,
-      tronscan_url: `https://tronscan.org/#/transaction/${tx}`,
-    }));
-  } catch (e) {
-    console.log(fmt({ error: `Send failed: ${e.message}`, hint: "npm install tronweb" }));
-  }
-}
 
 // ---------------------------------------------------------------------------
 // CLI Parser
@@ -1227,8 +1059,6 @@ const COMMANDS = {
   "tx-history":        { opts: { address: { type: "string" }, limit: { type: "string", default: "20" } }, required: ["address"], handler: (a) => cmdTxHistory({ ...a, limit: parseInt(a.limit) }) },
   "account-info":      { opts: { address: { type: "string" } }, required: ["address"], handler: cmdAccountInfo },
   "validate-address":  { opts: { address: { type: "string" } }, required: ["address"], handler: cmdValidateAddress },
-  "send-trx":          { opts: { from: { type: "string" }, to: { type: "string" }, amount: { type: "string" } }, required: ["from", "to", "amount"], handler: cmdSendTrx },
-  "send-token":        { opts: { from: { type: "string" }, to: { type: "string" }, contract: { type: "string" }, amount: { type: "string" } }, required: ["from", "to", "contract", "amount"], handler: cmdSendToken },
 
   // Token
   "token-info":        { opts: { contract: { type: "string" } }, required: ["contract"], handler: cmdTokenInfo },
@@ -1252,8 +1082,6 @@ const COMMANDS = {
   // Swap
   "swap-quote":        { opts: { "from-token": { type: "string" }, "to-token": { type: "string" }, amount: { type: "string" } }, required: ["from-token", "to-token", "amount"], handler: (a) => cmdSwapQuote({ fromToken: a["from-token"], toToken: a["to-token"], amount: a.amount }) },
   "swap-route":        { opts: { "from-token": { type: "string" }, "to-token": { type: "string" }, amount: { type: "string" } }, required: ["from-token", "to-token", "amount"], handler: (a) => cmdSwapQuote({ fromToken: a["from-token"], toToken: a["to-token"], amount: a.amount }) },
-  "swap-approve":      { opts: { contract: { type: "string" }, spender: { type: "string", default: "" } }, required: ["contract"], handler: cmdSwapApprove },
-  "swap-execute":      { opts: { "from-token": { type: "string" }, "to-token": { type: "string" }, amount: { type: "string" }, slippage: { type: "string", default: "0.5" } }, required: ["from-token", "to-token", "amount"], handler: (a) => cmdSwapExecute({ fromToken: a["from-token"], toToken: a["to-token"], amount: a.amount, slippage: a.slippage }) },
   "tx-status":         { opts: { txid: { type: "string" } }, required: ["txid"], handler: cmdTxStatus },
 
   // Resource
@@ -1261,16 +1089,10 @@ const COMMANDS = {
   "estimate-energy":   { opts: { contract: { type: "string" }, function: { type: "string" }, params: { type: "string", default: "" }, caller: { type: "string" } }, required: ["contract", "function", "caller"], handler: (a) => cmdEstimateEnergy({ contract: a.contract, func: a.function, params: a.params, caller: a.caller }) },
   "estimate-bandwidth":{ opts: { "tx-size": { type: "string", default: "267" } }, required: [], handler: (a) => cmdEstimateBandwidth({ txSize: parseInt(a["tx-size"]) }) },
   "energy-price":      { opts: {}, required: [], handler: cmdEnergyPrice },
-  "delegate-resource": { opts: { from: { type: "string" }, to: { type: "string" }, resource: { type: "string" }, amount: { type: "string" }, "lock-period": { type: "string", default: "0" } }, required: ["from", "to", "resource", "amount"], handler: (a) => cmdDelegateResource({ ...a, lockPeriod: parseInt(a["lock-period"]) }) },
   "energy-rental":     { opts: { amount: { type: "string", default: "65000" } }, required: [], handler: cmdEnergyRental },
   "optimize-cost":     { opts: { address: { type: "string" } }, required: ["address"], handler: cmdOptimizeCost },
 
   // Staking
-  "stake-freeze":      { opts: { amount: { type: "string" }, resource: { type: "string" } }, required: ["amount", "resource"], handler: cmdStakeFreeze },
-  "stake-unfreeze":    { opts: { amount: { type: "string" }, resource: { type: "string" } }, required: ["amount", "resource"], handler: cmdStakeUnfreeze },
-  "stake-withdraw":    { opts: {}, required: [], handler: cmdStakeWithdraw },
-  "vote":              { opts: { votes: { type: "string" } }, required: ["votes"], handler: cmdVote },
-  "claim-rewards":     { opts: {}, required: [], handler: cmdClaimRewards },
   "sr-list":           { opts: { limit: { type: "string", default: "30" } }, required: [], handler: (a) => cmdSrList({ limit: parseInt(a.limit) }) },
   "staking-info":      { opts: { address: { type: "string" } }, required: ["address"], handler: cmdStakingInfo },
   "staking-apy":       { opts: { amount: { type: "string", default: "10000" } }, required: [], handler: cmdStakingApy },
@@ -1290,8 +1112,6 @@ Commands:
     tx-history          --address <ADDR> [--limit N]
     account-info        --address <ADDR>
     validate-address    --address <ADDR>
-    send-trx            --from <ADDR> --to <ADDR> --amount <N>
-    send-token          --from <ADDR> --to <ADDR> --contract <TOKEN> --amount <N>
 
   Token:
     token-info          --contract <TOKEN>
@@ -1315,8 +1135,6 @@ Commands:
   Swap:
     swap-quote          --from-token <TOKEN> --to-token <TOKEN> --amount <N>
     swap-route          --from-token <TOKEN> --to-token <TOKEN> --amount <N>
-    swap-approve        --contract <TOKEN> [--spender <ADDR>]
-    swap-execute        --from-token <TOKEN> --to-token <TOKEN> --amount <N> [--slippage 0.5]
     tx-status           --txid <HASH>
 
   Resource:
@@ -1324,16 +1142,10 @@ Commands:
     estimate-energy     --contract <TOKEN> --function <SIG> --caller <ADDR> [--params <P>]
     estimate-bandwidth  [--tx-size 267]
     energy-price
-    delegate-resource   --from <ADDR> --to <ADDR> --resource <ENERGY|BANDWIDTH> --amount <N>
     energy-rental       [--amount 65000]
     optimize-cost       --address <ADDR>
 
   Staking:
-    stake-freeze        --amount <N> --resource <ENERGY|BANDWIDTH>
-    stake-unfreeze      --amount <N> --resource <ENERGY|BANDWIDTH>
-    stake-withdraw
-    vote                --votes "SR_ADDR:COUNT,SR_ADDR:COUNT"
-    claim-rewards
     sr-list             [--limit 30]
     staking-info        --address <ADDR>
     staking-apy         [--amount 10000]
@@ -1341,8 +1153,6 @@ Commands:
 Environment:
     TRONGRID_API_KEY       TronGrid API key (optional, for higher rate limits)
     TRON_NETWORK           mainnet (default) | shasta | nile
-    TRON_PRIVATE_KEY       Hex private key for signing operations
-    TRON_PRIVATE_KEY_FILE  Path to file containing the private key
   `);
 }
 

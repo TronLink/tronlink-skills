@@ -14,10 +14,7 @@ npm install -g @anthropic-ai/claude-code
 git clone https://github.com/TronLink/tronlink-skills.git
 cd tronlink-skills
 
-# 3. (Optional) Install tronweb for signing operations
-npm install tronweb
-
-# 4. Start Claude Code
+# 3. Start Claude Code
 claude
 
 # 5. Claude Code will automatically read CLAUDE.md and skills/*/SKILL.md

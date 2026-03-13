@@ -10,7 +10,7 @@ metadata:
 
 # TRON DEX Swap
 
-5 commands for swap quote, route optimization, approve token, execute swap, and transaction status tracking.
+3 commands for swap quote, route optimization, and transaction status tracking (read-only queries).
 
 ## Pre-flight Checks
 
@@ -60,34 +60,7 @@ node scripts/tron_api.mjs swap-route \
 
 Returns: optimal route across SunSwap V2, V3, Sun.io — may include multi-hop routes (e.g., TRX → WTRX → USDT).
 
-### 3. Approve Token
-
-```bash
-# Set private key via environment variable (never pass on command line)
-export TRON_PRIVATE_KEY='your-hex-private-key'
-
-node scripts/tron_api.mjs swap-approve \
-  --contract <TOKEN_CONTRACT> \
-  --spender <DEX_ROUTER_ADDRESS>
-```
-
-⚠️ **Required before first swap** for each TRC-20 token. TRX does not need approval.
-
-### 4. Execute Swap
-
-```bash
-node scripts/tron_api.mjs swap-execute \
-  --from-token <FROM_CONTRACT_OR_TRX> \
-  --to-token <TO_CONTRACT_OR_TRX> \
-  --amount <AMOUNT> \
-  --slippage <SLIPPAGE_PERCENT>
-```
-
-⚠️ **Human-in-the-loop**: Always show the user the swap details (input, output, price impact, slippage, energy cost) and ask for confirmation before executing.
-
-Default slippage: 0.5%. For volatile tokens, consider 1-3%.
-
-### 5. Transaction Status
+### 3. Transaction Status
 
 ```bash
 node scripts/tron_api.mjs tx-status --txid <TRANSACTION_HASH>

@@ -60,12 +60,12 @@ Fetch and follow instructions from https://raw.githubusercontent.com/TronLink/tr
 
 | Skill | Description |
 |-------|-------------|
-| `tron-wallet` | Wallet setup, TRX/TRC-20 balances, transfer TRX & tokens, transaction history, account info |
+| `tron-wallet` | Wallet setup, TRX/TRC-20 balances, transaction history, account info |
 | `tron-token` | Token search, metadata, contract verification, holder analysis, trending tokens |
 | `tron-market` | Real-time prices, K-line data, trade history, whale monitoring, smart money signals |
-| `tron-swap` | DEX aggregation swap (SunSwap, etc.), quote, approve, execute |
-| `tron-resource` | Energy & Bandwidth query, estimation, resource delegation, cost optimization |
-| `tron-staking` | Stake 2.0 freeze/unfreeze TRX, vote for SRs, claim rewards |
+| `tron-swap` | DEX swap quote & route (SunSwap, etc.), transaction status |
+| `tron-resource` | Energy & Bandwidth query, estimation, cost optimization |
+| `tron-staking` | SR list, staking info, APY estimation |
 
 ## Quick Start
 
@@ -73,9 +73,6 @@ Fetch and follow instructions from https://raw.githubusercontent.com/TronLink/tr
 # Clone the repo
 git clone https://github.com/TronLink/tronlink-skills.git
 cd tronlink-skills
-
-# Optional: install TronWeb for signing operations
-npm install tronweb
 
 # Check TRX balance
 node scripts/tron_api.mjs wallet-balance --address TXYZabc123...
@@ -92,12 +89,6 @@ node scripts/tron_api.mjs swap-quote \
 # Check energy & bandwidth
 node scripts/tron_api.mjs resource-info --address TXYZabc123...
 
-# Send TRX (set private key via env var — never on command line)
-export TRON_PRIVATE_KEY='your-hex-private-key'
-node scripts/tron_api.mjs send-trx --from TAddr1 --to TAddr2 --amount 10
-
-# Send TRC-20 token
-node scripts/tron_api.mjs send-token --from TAddr1 --to TAddr2 --contract USDT --amount 5
 ```
 
 ## Zero Dependencies for Read Operations
@@ -109,15 +100,9 @@ The CLI uses **native Node.js `fetch`** (Node 18+) and **native `crypto`** for a
 - Transaction history, address validation
 - SR list, staking APY calculation
 
-**Only signing operations** (send-trx, send-token) require `tronweb`:
-```bash
-npm install tronweb
-```
-
 ## Prerequisites
 
 - **Node.js 18+** (for native `fetch` support)
-- **tronweb** (optional, for signing — `npm install tronweb`)
 - TronGrid API Key (optional — apply at [TronGrid Dashboard](https://www.trongrid.io/dashboard))
 
 ```bash
@@ -126,11 +111,6 @@ export TRONGRID_API_KEY="your-api-key"
 
 # Optional: switch network
 export TRON_NETWORK="mainnet"  # or "shasta" / "nile"
-
-# For signing operations (choose one):
-export TRON_PRIVATE_KEY="your-hex-private-key"
-# or
-export TRON_PRIVATE_KEY_FILE="/path/to/keyfile.txt"
 ```
 
 ## Supported Networks
@@ -143,13 +123,13 @@ export TRON_PRIVATE_KEY_FILE="/path/to/keyfile.txt"
 
 ## Skill Workflows
 
-**Check & Transfer**: `tron-wallet` (check balance) → `tron-resource` (estimate energy cost) → `tron-wallet` (send TRX/token)
+**Check Balance**: `tron-wallet` (check balance) → `tron-resource` (estimate energy cost)
 
-**Research & Buy**: `tron-token` (search token) → `tron-market` (price/chart) → `tron-resource` (check energy) → `tron-swap` (execute trade)
+**Research Token**: `tron-token` (search token) → `tron-market` (price/chart) → `tron-swap` (get quote)
 
-**Staking Flow**: `tron-wallet` (check TRX balance) → `tron-staking` (freeze TRX) → `tron-staking` (vote for SR) → `tron-staking` (claim rewards)
+**Staking Info**: `tron-wallet` (check TRX balance) → `tron-staking` (staking info, SR list, APY)
 
-**Resource Optimization**: `tron-resource` (check energy/bandwidth) → `tron-resource` (estimate cost) → `tron-staking` (freeze for energy) OR `tron-resource` (rent energy)
+**Resource Optimization**: `tron-resource` (check energy/bandwidth) → `tron-resource` (estimate cost) → `tron-resource` (rent energy)
 
 ## Architecture
 
@@ -160,18 +140,17 @@ AI Agent (Claude Code / Cursor / OpenClaw / Custom)
     ↓
 tron_api.mjs (Node.js 18+, native fetch)
     ↓  ← TronGrid API Key (optional)
-    ├── TronGrid HTTP API (read operations — zero deps)
-    └── TronWeb SDK (signing operations — npm install tronweb)
+    └── TronGrid HTTP API (read operations — zero deps)
     ↓
 Structured JSON → Agent interprets → Natural language response
 ```
 
-## All Commands (41 total)
+## All Commands (30 total)
 
-### Wallet (8 commands)
+### Wallet (6 commands)
 ```
 wallet-balance      token-balance       wallet-tokens       tx-history
-account-info        validate-address    send-trx            send-token
+account-info        validate-address
 ```
 
 ### Token (7 commands)
@@ -186,43 +165,20 @@ token-price         kline               trade-history       dex-volume
 whale-transfers     large-transfers     pool-info           market-overview
 ```
 
-### Swap (5 commands)
+### Swap (3 commands)
 ```
-swap-quote          swap-route          swap-approve        swap-execute
-tx-status
+swap-quote          swap-route          tx-status
 ```
 
-### Resource (7 commands)
+### Resource (6 commands)
 ```
 resource-info       estimate-energy     estimate-bandwidth  energy-price
-delegate-resource   energy-rental       optimize-cost
+energy-rental       optimize-cost
 ```
 
-### Staking (8 commands)
+### Staking (3 commands)
 ```
-stake-freeze        stake-unfreeze      stake-withdraw      vote
-claim-rewards       sr-list             staking-info        staking-apy
-```
-
-## TronWeb Signing Examples
-
-For operations that move funds, the CLI outputs ready-to-use TronWeb code snippets:
-
-```javascript
-// Send TRX
-const TronWeb = require('tronweb');
-const tronWeb = new TronWeb({ fullHost: 'https://api.trongrid.io', privateKey: process.env.TRON_PRIVATE_KEY });
-const tx = await tronWeb.trx.sendTransaction('TReceiverAddr', 100000000); // 100 TRX
-
-// Freeze for Energy (Stake 2.0)
-await tronWeb.transactionBuilder.freezeBalanceV2(1000000000, 'ENERGY'); // 1000 TRX
-
-// Vote for SR
-await tronWeb.transactionBuilder.vote({ 'TSRAddress': 1000 });
-
-// Approve token for DEX
-const contract = await tronWeb.contract().at('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
-await contract.approve('TRouterAddr', '0xffffffff...').send();
+sr-list             staking-info        staking-apy
 ```
 
 ## Compatible Platforms
@@ -238,11 +194,8 @@ await contract.approve('TRouterAddr', '0xffffffff...').send();
 
 ## Security Notes
 
-- Never pass private keys as CLI arguments (visible in `ps`, shell history, logs)
-- Use `TRON_PRIVATE_KEY` env var or `TRON_PRIVATE_KEY_FILE` for signing
-- All signing happens locally via TronWeb; private keys never leave the machine
-- Fund-moving operations always require explicit confirmation
-- Read-only operations use public TronGrid API (rate-limited without API key)
+- This skill set is **read-only** — no private keys or signing operations
+- All operations use public TronGrid API (rate-limited without API key)
 - Built-in token symbols (TRX, USDT, USDC, etc.) auto-resolve to verified contracts
 
 ## License

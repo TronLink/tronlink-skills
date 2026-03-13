@@ -155,7 +155,7 @@ main() {
   echo ""
   ok "TronLink Skills has been completely uninstalled."
   echo ""
-  echo "  Note: Environment variables (TRONGRID_API_KEY, TRON_PRIVATE_KEY, etc.)"
+  echo "  Note: Environment variables (TRONGRID_API_KEY, etc.)"
   echo "  are not removed. Remove them from your shell profile if needed:"
   echo "    ~/.bashrc  ~/.zshrc  ~/.profile"
   echo ""

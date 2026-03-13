@@ -24,10 +24,7 @@ npm install -g @anthropic-ai/claude-code
 git clone https://github.com/TronLink/tronlink-skills.git
 cd tronlink-skills
 
-# 3. (Optional) Install signing dependencies
-npm install tronweb
-
-# 4. Start Claude Code
+# 3. Start Claude Code
 claude
 ```
 
@@ -209,5 +206,5 @@ A: Check that the path to `mcp_server.mjs` is an absolute path, and Node.js >= 1
 ### Q: API requests failing?
 A: TronGrid public endpoints have rate limits. Set `TRONGRID_API_KEY` for higher limits. Apply at https://www.trongrid.io/dashboard.
 
-### Q: How to execute transactions (transfer/swap)?
-A: Read operations have zero dependencies, but signing operations require `npm install tronweb` and the `TRON_PRIVATE_KEY` environment variable (or `TRON_PRIVATE_KEY_FILE`). Private keys are never passed as CLI arguments. All fund-moving operations will display a confirmation prompt first.
+### Q: Does this support transactions (transfer/swap)?
+A: This skill set is read-only. It supports balance queries, token info, market data, resource estimation, and staking info. Transaction signing is not supported.

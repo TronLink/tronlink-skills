@@ -1,6 +1,6 @@
 ---
 name: tron-wallet
-description: "This skill should be used when the user asks to 'check my TRX balance', 'show my TRON holdings', 'send TRX', 'transfer USDT on TRON', 'what tokens do I have on TRON', 'check my TRON wallet', 'TronLink balance', 'view my TRC-20 tokens', 'TRON transaction history', 'account info on TRON', or mentions checking wallet balance, transferring TRX or TRC-20 tokens, viewing transaction history, or managing a TronLink wallet. Do NOT use for swap/trading — use tron-swap instead. Do NOT use for staking — use tron-staking instead."
+description: "This skill should be used when the user asks to 'check my TRX balance', 'show my TRON holdings', 'what tokens do I have on TRON', 'check my TRON wallet', 'TronLink balance', 'view my TRC-20 tokens', 'TRON transaction history', 'account info on TRON', or mentions checking wallet balance, viewing transaction history, or managing a TronLink wallet. Do NOT use for swap/trading — use tron-swap instead. Do NOT use for staking — use tron-staking instead."
 license: MIT
 metadata:
   author: tronlink-skills
@@ -10,14 +10,11 @@ metadata:
 
 # TRON Wallet Management
 
-8 commands for wallet balance, TRC-20 holdings, TRX transfer, token transfer, transaction history, account info, address validation, and multi-sig support.
+6 commands for wallet balance, TRC-20 holdings, transaction history, account info, address validation, and multi-sig support.
 
 ## Pre-flight Checks
 
-1. **Confirm Python & dependencies**: Run `node -e "console.log('ok')"  # Node.js >= 18 required
-   ```bash
-   npm install tronweb  # optional, for signing
-   ```
+1. **Confirm Node.js**: Run `node -e "console.log('ok')"  # Node.js >= 18 required
 
 2. **API Key (optional)**: For higher rate limits, set:
    ```bash
@@ -67,36 +64,7 @@ node scripts/tron_api.mjs wallet-tokens --address <TRON_ADDRESS>
 
 Returns: list of all TRC-20 tokens with balances, symbols, and USD values.
 
-### 4. Transfer TRX
-
-```bash
-# Set private key via environment variable (never pass on command line)
-export TRON_PRIVATE_KEY='your-hex-private-key'
-# Or use a key file:
-export TRON_PRIVATE_KEY_FILE='/path/to/keyfile.txt'
-
-node scripts/tron_api.mjs send-trx \
-  --from <FROM_ADDRESS> \
-  --to <TO_ADDRESS> \
-  --amount <AMOUNT_IN_TRX>
-```
-
-⚠️ **Human-in-the-loop**: Always show the user the transaction details and ask for confirmation before executing. Never auto-sign.
-
-### 5. Transfer TRC-20 Token
-
-```bash
-node scripts/tron_api.mjs send-token \
-  --from <FROM_ADDRESS> \
-  --to <TO_ADDRESS> \
-  --contract <TOKEN_CONTRACT> \
-  --amount <AMOUNT_HUMAN_READABLE>
-```
-
-⚠️ **Important**: Amount is human-readable (e.g., `10` for 10 USDT, NOT `10000000`).
-⚠️ TRC-20 transfers consume **Energy**. Check energy first with `tron-resource`.
-
-### 6. Transaction History
+### 4. Transaction History
 
 ```bash
 node scripts/tron_api.mjs tx-history --address <TRON_ADDRESS> --limit 20
@@ -104,7 +72,7 @@ node scripts/tron_api.mjs tx-history --address <TRON_ADDRESS> --limit 20
 
 Returns: recent transactions with type, amount, timestamp, status.
 
-### 7. Account Info
+### 5. Account Info
 
 ```bash
 node scripts/tron_api.mjs account-info --address <TRON_ADDRESS>
@@ -112,7 +80,7 @@ node scripts/tron_api.mjs account-info --address <TRON_ADDRESS>
 
 Returns: account creation date, permissions, resource overview, frozen balances, voting info.
 
-### 8. Validate Address
+### 6. Validate Address
 
 ```bash
 node scripts/tron_api.mjs validate-address --address <ADDRESS>
