@@ -23,7 +23,7 @@
  *   }
  *
  * Configure in Claude Code:
- *   claude mcp add tronlink -- node /absolute/path/to/tronlink-skills/scripts/mcp_server.mjs
+ *   claude mcp add tronlink-skills -- node /absolute/path/to/tronlink-skills/scripts/mcp_server.mjs
  */
 
 import { execFile } from "node:child_process";
@@ -113,6 +113,32 @@ const TOOLS = [
     command: ["validate-address", "--address"],
     argKeys: ["address"],
   },
+  {
+    name: "tron_wallet_approvals",
+    description: "List active TRC-20 token approvals (allowances) for an address. Flags UNLIMITED approvals — the main wallet-drain risk. Read-only; revoking requires the wallet.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        address: { type: "string", description: "TRON address" },
+        limit: { type: "number", description: "Max approvals to return (default 50)" },
+      },
+      required: ["address"],
+    },
+    command: ["wallet-approvals", "--address"],
+    argKeys: ["address"],
+    optionalArgs: { limit: "--limit" },
+  },
+  {
+    name: "tron_wallet_overview",
+    description: "One-shot wallet dashboard for an address: TRX balance, known TRC-20 holdings, Energy/Bandwidth resources, and staking summary in one call",
+    inputSchema: {
+      type: "object",
+      properties: { address: { type: "string", description: "TRON address" } },
+      required: ["address"],
+    },
+    command: ["wallet-overview", "--address"],
+    argKeys: ["address"],
+  },
 
   // === Token ===
   {
@@ -124,6 +150,17 @@ const TOOLS = [
       required: ["contract"],
     },
     command: ["token-info", "--contract"],
+    argKeys: ["contract"],
+  },
+  {
+    name: "tron_contract_info",
+    description: "Get contract metadata: name, verification status, creator, creation time, energy factor",
+    inputSchema: {
+      type: "object",
+      properties: { contract: { type: "string", description: "Contract address" } },
+      required: ["contract"],
+    },
+    command: ["contract-info", "--contract"],
     argKeys: ["contract"],
   },
   {
@@ -154,7 +191,7 @@ const TOOLS = [
   },
   {
     name: "tron_trending_tokens",
-    description: "Get trending tokens on TRON by 24h volume",
+    description: "Get trending TRON-ecosystem tokens by 24h volume (CoinGecko tron-ecosystem list, not a DEX-only ranking)",
     inputSchema: { type: "object", properties: {} },
     command: ["trending-tokens"],
     argKeys: [],
@@ -178,13 +215,24 @@ const TOOLS = [
   },
   {
     name: "tron_token_security",
-    description: "Security audit for a TRC-20 token: verification, holder concentration, risk assessment",
+    description: "Heuristic risk snapshot for a TRC-20 token (verification, holder concentration, holder count) — NOT a full audit; does not detect honeypots, mint/pause/blacklist, or proxy upgradeability",
     inputSchema: {
       type: "object",
       properties: { contract: { type: "string", description: "Token contract address" } },
       required: ["contract"],
     },
     command: ["token-security", "--contract"],
+    argKeys: ["contract"],
+  },
+  {
+    name: "tron_token_overview",
+    description: "One-shot token dashboard: name, symbol, price, market cap, 24h volume/change, holders, supply, and a heuristic security snapshot in one call",
+    inputSchema: {
+      type: "object",
+      properties: { contract: { type: "string", description: "Token contract or symbol (USDT, USDD, ...)" } },
+      required: ["contract"],
+    },
+    command: ["token-overview", "--contract"],
     argKeys: ["contract"],
   },
 
@@ -202,7 +250,7 @@ const TOOLS = [
   },
   {
     name: "tron_kline",
-    description: "Get K-line (candlestick OHLCV) data for a token",
+    description: "Get K-line (candlestick OHLC) data for a token — open/high/low/close only, no volume; interval selects a CoinGecko time-range bucket",
     inputSchema: {
       type: "object",
       properties: {
@@ -223,7 +271,7 @@ const TOOLS = [
       type: "object",
       properties: {
         contract: { type: "string", description: "Token contract" },
-        min_value: { type: "number", description: "Minimum value filter" },
+        min_value: { type: "number", description: "Minimum transfer amount in token units (whole tokens, not USD)" },
       },
       required: ["contract"],
     },
@@ -233,10 +281,65 @@ const TOOLS = [
   },
   {
     name: "tron_market_overview",
-    description: "Get TRON network overview: TRX price, total accounts, transactions, blocks",
+    description: "Get TRON network overview: TRX price, 24h change, market cap, 24h volume, and latest/confirmed block (no account/transaction totals)",
     inputSchema: { type: "object", properties: {} },
     command: ["market-overview"],
     argKeys: [],
+  },
+  {
+    name: "tron_trade_history",
+    description: "Get recent TRC-20 token transfers for a token (raw transfers — no execution price or DEX source)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contract: { type: "string", description: "Token contract or symbol" },
+        limit: { type: "number", description: "Number of transfers (default 50)" },
+      },
+      required: ["contract"],
+    },
+    command: ["trade-history", "--contract"],
+    argKeys: ["contract"],
+    optionalArgs: { limit: "--limit" },
+  },
+  {
+    name: "tron_dex_volume",
+    description: "Get 24h volume and liquidity snapshot for a token (from market data)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        contract: { type: "string", description: "Token contract or symbol" },
+        period: { type: "string", description: "Period label (5m, 1h, 4h, 24h)" },
+      },
+      required: ["contract"],
+    },
+    command: ["dex-volume", "--contract"],
+    argKeys: ["contract"],
+    optionalArgs: { period: "--period" },
+  },
+  {
+    name: "tron_large_transfers",
+    description: "List recent large TRX transfers network-wide above a threshold",
+    inputSchema: {
+      type: "object",
+      properties: {
+        min_trx: { type: "number", description: "Minimum TRX amount (default 100000)" },
+        limit: { type: "number", description: "Number of results (default 20)" },
+      },
+    },
+    command: ["large-transfers"],
+    argKeys: [],
+    optionalArgs: { min_trx: "--min-trx", limit: "--limit" },
+  },
+  {
+    name: "tron_pool_info",
+    description: "Get a token's liquidity/volume snapshot from market data (not a full pool/TVL breakdown — use swap-quote for routing)",
+    inputSchema: {
+      type: "object",
+      properties: { contract: { type: "string", description: "Token contract or symbol" } },
+      required: ["contract"],
+    },
+    command: ["pool-info", "--contract"],
+    argKeys: ["contract"],
   },
 
   // === Swap ===
@@ -249,11 +352,13 @@ const TOOLS = [
         from_token: { type: "string", description: "Source token (TRX, USDT, or contract)" },
         to_token: { type: "string", description: "Target token" },
         amount: { type: "string", description: "Human-readable amount (e.g. '100' for 100 TRX)" },
+        slippage: { type: "number", description: "Max slippage tolerance in percent (default 0.5; e.g. 1 for 1%). Range 0–50." },
       },
       required: ["from_token", "to_token", "amount"],
     },
     command: ["swap-quote", "--from-token", null, "--to-token", null, "--amount"],
     argKeys: ["from_token", "to_token", "amount"],
+    optionalArgs: { slippage: "--slippage" },
   },
   {
     name: "tron_tx_status",
@@ -287,6 +392,37 @@ const TOOLS = [
     argKeys: [],
   },
   {
+    name: "tron_bandwidth_price",
+    description: "Get the live on-chain Bandwidth price (getTransactionFee, SUN per byte) and example burn costs",
+    inputSchema: { type: "object", properties: {} },
+    command: ["bandwidth-price"],
+    argKeys: [],
+  },
+  {
+    name: "tron_tx_cost",
+    description: "Estimate total cost (bandwidth + energy + TRX burned with no resources) for a common operation type, using live on-chain fees",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: {
+          type: "string",
+          description: "Operation type",
+          enum: ["trx-transfer", "trc20-transfer", "trc20-transfer-existing", "approve", "swap-v2", "swap-v3"],
+        },
+      },
+    },
+    command: ["tx-cost"],
+    argKeys: [],
+    optionalArgs: { type: "--type" },
+  },
+  {
+    name: "tron_chain_params",
+    description: "Get key TRON governance chain parameters (energy/bandwidth price, account-creation fee, memo fee, max fee limit, SR block reward)",
+    inputSchema: { type: "object", properties: {} },
+    command: ["chain-params"],
+    argKeys: [],
+  },
+  {
     name: "tron_estimate_energy",
     description: "Estimate energy consumption and TRX cost for a smart contract call",
     inputSchema: {
@@ -313,6 +449,28 @@ const TOOLS = [
     },
     command: ["optimize-cost", "--address"],
     argKeys: ["address"],
+  },
+  {
+    name: "tron_estimate_bandwidth",
+    description: "Estimate bandwidth for a transaction size and whether the 600/day free allowance covers it",
+    inputSchema: {
+      type: "object",
+      properties: { tx_size: { type: "number", description: "Transaction size in bytes (default 267)" } },
+    },
+    command: ["estimate-bandwidth"],
+    argKeys: [],
+    optionalArgs: { tx_size: "--tx-size" },
+  },
+  {
+    name: "tron_energy_rental",
+    description: "List third-party energy rental marketplace options for a given energy amount",
+    inputSchema: {
+      type: "object",
+      properties: { amount: { type: "number", description: "Energy amount needed (default 65000)" } },
+    },
+    command: ["energy-rental"],
+    argKeys: [],
+    optionalArgs: { amount: "--amount" },
   },
 
   // === Staking ===
@@ -348,6 +506,15 @@ const TOOLS = [
     command: ["staking-apy"],
     argKeys: [],
     optionalArgs: { amount: "--amount" },
+  },
+
+  // === Diagnostics ===
+  {
+    name: "tron_health_check",
+    description: "Check reachability and latency of the upstream APIs (TronGrid, TronScan, CoinGecko, Sun.io router) plus Node version — useful when data looks missing or rate-limited",
+    inputSchema: { type: "object", properties: {} },
+    command: ["health-check"],
+    argKeys: [],
   },
 ];
 
@@ -434,7 +601,7 @@ async function handleRequest(req) {
       sendResponse(id, {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "tronlink-skills", version: "1.0.0" },
+        serverInfo: { name: "tronlink-skills", version: "1.1.0" },
       });
       break;
 

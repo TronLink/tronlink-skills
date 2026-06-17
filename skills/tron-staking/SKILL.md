@@ -4,7 +4,7 @@ description: "This skill should be used when the user asks to 'stake TRX', 'free
 license: MIT
 metadata:
   author: tronlink-skills
-  version: "1.0.0"
+  version: "1.1.0"
   homepage: "https://trongrid.io"
 ---
 
@@ -25,12 +25,23 @@ Stake 2.0 replaced the legacy Stake 1.0 system. Key differences:
 Freeze TRX → Get Energy or Bandwidth → Vote for SR → Earn Rewards → Unfreeze → Wait 14 days → Withdraw
 ```
 
+## Resolve the CLI path
+
+Every command below runs `node "$TRON_API"`. Set `$TRON_API` once per session so it works no matter how the skill was installed (Claude Code plugin, `install.sh` → `~/.tronlink-skills`, or inside the cloned repo):
+
+```bash
+TRON_API="${CLAUDE_PLUGIN_ROOT:-$HOME/.tronlink-skills}/scripts/tron_api.mjs"
+[ -f "$TRON_API" ] || TRON_API="scripts/tron_api.mjs"   # fallback when run inside the repo
+```
+
+> **Read-only / informational:** this skill explains staking and reads on-chain staking state, APY, and SR data. It does **not** freeze/unfreeze, vote, or claim — those require signing in the TronLink wallet itself.
+
 ## Commands
 
 ### 1. Super Representative List
 
 ```bash
-node scripts/tron_api.mjs sr-list --limit 30
+node "$TRON_API" sr-list --limit 30
 ```
 
 Returns: SR name, address, total votes, vote percentage, block production rate, APY estimate, commission rate.
@@ -38,7 +49,7 @@ Returns: SR name, address, total votes, vote percentage, block production rate, 
 ### 2. My Staking Info
 
 ```bash
-node scripts/tron_api.mjs staking-info --address <TRON_ADDRESS>
+node "$TRON_API" staking-info --address <TRON_ADDRESS>
 ```
 
 Returns:
@@ -48,12 +59,12 @@ Returns:
 - Current votes (which SRs, how many)
 - Unclaimed rewards
 - Pending unfreezes (amount, unlock date)
-- Delegated resources (to whom, amount)
+- Delegated resources — the addresses this account delegated **to** / received **from** (per-pair amounts require a deeper `getdelegatedresourcev2` lookup)
 
 ### 3. APY Estimation
 
 ```bash
-node scripts/tron_api.mjs staking-apy --amount <TRX_TO_STAKE>
+node "$TRON_API" staking-apy --amount <TRX_TO_STAKE>
 ```
 
 Returns: estimated annual yield based on current network parameters, SR rewards, and commission rates.

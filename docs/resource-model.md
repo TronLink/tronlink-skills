@@ -36,11 +36,11 @@ TRON's fee model is fundamentally different from Ethereum's gas system. Understa
 | Token approval | ~30,000 |
 | Contract deployment | ~200,000-1,000,000+ |
 
-**If insufficient**: TRX is burned. The burn rate depends on `getEnergyFee` chain parameter (typically 420 SUN per Energy unit).
+**If insufficient**: TRX is burned. The burn rate is the `getEnergyFee` chain parameter, set by governance — **~100 SUN as of mid-2026** (it was 420 SUN in 2023–2024). Always read the live value with `energy-price` rather than assuming.
 
 **Cost calculation**: `TRX burned = energy_used × energy_price_sun / 1,000,000`
 
-Example: USDT transfer (65,000 Energy × 420 SUN) = 27,300,000 SUN = 27.3 TRX
+Example (mid-2026 fee = 100 SUN): USDT transfer 65,000 × 100 = 6,500,000 SUN = 6.5 TRX. At the old 420-SUN rate the same transfer cost 27.3 TRX — the burn scales linearly with the live fee.
 
 ## How to Get Energy
 
@@ -75,10 +75,10 @@ Example: USDT transfer (65,000 Energy × 420 SUN) = 27,300,000 SUN = 27.3 TRX
 The `getEnergyFee` parameter is set by TRON governance:
 - 2021: 140 SUN/Energy
 - 2022: 280 SUN/Energy
-- 2023: 420 SUN/Energy
-- 2024-2025: 420 SUN/Energy (current)
+- 2023-2024: 420 SUN/Energy
+- 2026: ~100 SUN/Energy (observed live — governance has lowered the fee; always verify with `energy-price`)
 
-Higher energy prices make staking more valuable.
+Higher energy prices make staking more valuable for avoiding burns; when the fee is low, renting or burning is relatively cheaper.
 
 ## Common Pitfalls
 

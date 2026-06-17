@@ -72,10 +72,10 @@ MCP (Model Context Protocol) is Anthropic's tool protocol. After wrapping Skills
 
 ```bash
 # One-line command to add
-claude mcp add tronlink -- node /your/path/to/tronlink-skills/scripts/mcp_server.mjs
+claude mcp add tronlink-skills -- node /your/path/to/tronlink-skills/scripts/mcp_server.mjs
 ```
 
-After adding, Claude Code will automatically recognize 25 TRON tools (tron_wallet_balance, tron_token_price, etc.), no need to manually specify commands.
+After adding, Claude Code will automatically recognize 39 TRON tools (tron_wallet_balance, tron_token_price, etc.), no need to manually specify commands.
 
 ### Configuring in Claude Desktop
 
@@ -101,7 +101,7 @@ Edit the config file:
 
 After restarting Claude Desktop, you can use TRON-related tools directly in conversations.
 
-### 25 Tools Provided by MCP
+### 39 Tools Provided by MCP
 
 | Tool Name | Function |
 |-----------|----------|
@@ -111,22 +111,36 @@ After restarting Claude Desktop, you can use TRON-related tools directly in conv
 | `tron_tx_history` | Transaction history |
 | `tron_account_info` | Account details |
 | `tron_validate_address` | Validate address |
+| `tron_wallet_approvals` | TRC-20 approval (allowance) audit |
+| `tron_wallet_overview` | One-shot wallet dashboard |
+| `tron_token_overview` | One-shot token dashboard |
+| `tron_health_check` | Upstream API health/latency check |
 | `tron_token_info` | Token metadata |
 | `tron_token_search` | Search tokens |
 | `tron_token_holders` | Top holders |
 | `tron_trending_tokens` | Trending tokens |
 | `tron_token_rankings` | Token rankings |
-| `tron_token_security` | Security audit |
+| `tron_token_security` | Security heuristic snapshot |
+| `tron_contract_info` | Contract metadata (name, verified, creator) |
 | `tron_token_price` | Real-time price |
 | `tron_kline` | K-line data |
 | `tron_whale_transfers` | Whale monitoring |
 | `tron_market_overview` | Market overview |
+| `tron_trade_history` | Recent token transfers |
+| `tron_dex_volume` | 24h volume/liquidity snapshot |
+| `tron_large_transfers` | Large TRX transfers network-wide |
+| `tron_pool_info` | Liquidity/volume snapshot |
 | `tron_swap_quote` | DEX quote |
 | `tron_tx_status` | Transaction status |
 | `tron_resource_info` | Energy/Bandwidth query |
 | `tron_energy_price` | Energy price |
+| `tron_bandwidth_price` | Live bandwidth price |
+| `tron_tx_cost` | Per-operation cost estimate |
+| `tron_chain_params` | Key governance chain parameters |
 | `tron_estimate_energy` | Energy estimation |
 | `tron_optimize_cost` | Cost optimization report |
+| `tron_estimate_bandwidth` | Bandwidth estimation |
+| `tron_energy_rental` | Energy rental marketplace |
 | `tron_sr_list` | Super Representative list |
 | `tron_staking_info` | Staking details |
 | `tron_staking_apy` | APY estimation |
@@ -144,7 +158,7 @@ If you don't want to install anything, you can use it directly in claude.ai conv
 For example, in the current conversation, you can say:
 
 ```
-Use tron_api.mjs to run a security audit on the USDT contract TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t
+Use tron_api.mjs to run a security risk check (heuristic snapshot, not a full audit) on the USDT contract TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t
 ```
 
 ---

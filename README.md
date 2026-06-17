@@ -41,7 +41,7 @@ npx skills add TronLink/tronlink-skills
 /plugin install tronlink-skills
 
 # Option C: MCP Server (manual)
-claude mcp add tronlink -- node ~/.tronlink-skills/scripts/mcp_server.mjs
+claude mcp add tronlink-skills -- node ~/.tronlink-skills/scripts/mcp_server.mjs
 ```
 
 ### Cursor / Windsurf
@@ -145,18 +145,18 @@ tron_api.mjs (Node.js 18+, native fetch)
 Structured JSON → Agent interprets → Natural language response
 ```
 
-## All Commands (30 total)
+## All Commands (40 total)
 
-### Wallet (6 commands)
+### Wallet (8 commands)
 ```
 wallet-balance      token-balance       wallet-tokens       tx-history
-account-info        validate-address
+account-info        validate-address    wallet-approvals    wallet-overview
 ```
 
-### Token (7 commands)
+### Token (8 commands)
 ```
 token-info          token-search        contract-info       token-holders
-trending-tokens     token-rankings      token-security
+trending-tokens     token-rankings      token-security      token-overview
 ```
 
 ### Market (8 commands)
@@ -170,15 +170,21 @@ whale-transfers     large-transfers     pool-info           market-overview
 swap-quote          swap-route          tx-status
 ```
 
-### Resource (6 commands)
+### Resource (9 commands)
 ```
 resource-info       estimate-energy     estimate-bandwidth  energy-price
-energy-rental       optimize-cost
+bandwidth-price     tx-cost             chain-params        energy-rental
+optimize-cost
 ```
 
 ### Staking (3 commands)
 ```
 sr-list             staking-info        staking-apy
+```
+
+### Diagnostics (1 command)
+```
+health-check
 ```
 
 ## Compatible Platforms
@@ -196,7 +202,7 @@ sr-list             staking-info        staking-apy
 
 - This skill set is **read-only** — no private keys or signing operations
 - All operations use public TronGrid API (rate-limited without API key)
-- Built-in token symbols (TRX, USDT, USDC, etc.) auto-resolve to verified contracts
+- Built-in **TRC-20** symbols (USDT, USDC, USDD, etc.) auto-resolve to verified contracts. **TRX is the native coin, not a contract** — use it with price/market/wallet commands (`token-price --contract TRX`, `market-overview`, `wallet-balance`). The contract-only commands (`token-info`, `contract-info`, `token-holders`, `token-security`, `token-overview`) don't apply to native TRX and return a hint pointing you to those commands.
 
 ## License
 
