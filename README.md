@@ -104,10 +104,12 @@ The CLI uses **native Node.js `fetch`** (Node 18+) and **native `crypto`** for a
 
 - **Node.js 18+** (for native `fetch` support)
 - TronGrid API Key (optional — apply at [TronGrid Dashboard](https://www.trongrid.io/dashboard))
+- TronScan API Key (optional — raises TronScan rate limits and enables full `token-search`)
 
 ```bash
 # Optional: higher rate limits
 export TRONGRID_API_KEY="your-api-key"
+export TRONSCAN_API_KEY="your-api-key"   # raises TronScan limits + enables token-search (/search/v2)
 
 # Optional: switch network
 export TRON_NETWORK="mainnet"  # or "shasta" / "nile"
@@ -138,9 +140,12 @@ Natural Language Input
     ↓
 AI Agent (Claude Code / Cursor / OpenClaw / Custom)
     ↓
-tron_api.mjs (Node.js 18+, native fetch)
-    ↓  ← TronGrid API Key (optional)
-    └── TronGrid HTTP API (read operations — zero deps)
+tron_api.mjs (Node.js 18+, native fetch — zero deps)
+    ↓  ← TronGrid / TronScan API keys (both optional)
+    ├── TronGrid        — accounts, resources, chain params, tx, address validation
+    ├── TronScan        — token metadata, holders, transfers, approvals, rankings
+    ├── CoinGecko       — prices, K-line, trending tokens
+    └── Sun.io router   — DEX swap quotes
     ↓
 Structured JSON → Agent interprets → Natural language response
 ```
@@ -201,7 +206,7 @@ health-check
 ## Security Notes
 
 - This skill set is **read-only** — no private keys or signing operations
-- All operations use public TronGrid API (rate-limited without API key)
+- All operations use public read-only TRON APIs (TronGrid, TronScan, CoinGecko, Sun.io router) — each rate-limited without a key; set `TRONGRID_API_KEY` / `TRONSCAN_API_KEY` to raise the limits
 - Built-in **TRC-20** symbols (USDT, USDC, USDD, etc.) auto-resolve to verified contracts. **TRX is the native coin, not a contract** — use it with price/market/wallet commands (`token-price --contract TRX`, `market-overview`, `wallet-balance`). The contract-only commands (`token-info`, `contract-info`, `token-holders`, `token-security`, `token-overview`) don't apply to native TRX and return a hint pointing you to those commands.
 
 ## License
