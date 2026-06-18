@@ -12,8 +12,8 @@
     {
       "name": "tronlink-skills",
       "source": "./",
-      "description": "6 TronLink skills — wallet balance & transfer, token search & security audit, market data & whale monitoring, DEX swap via SunSwap, Energy/Bandwidth resource management, and TRX Stake 2.0 with SR voting",
-      "version": "1.0.0",
+      "description": "6 read-only TronLink skills — wallet balances & holdings, token search & security heuristics, market data & whale monitoring, DEX swap quotes via SunSwap, Energy/Bandwidth resource planning, and TRX Stake 2.0 info",
+      "version": "1.1.0",
       "author": {
         "name": "tronlink-skills"
       },

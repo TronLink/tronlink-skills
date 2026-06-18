@@ -36,9 +36,12 @@ removed() { printf "${RED}✗${NC}  Removed: %s\n" "$1"; }
 uninstall_claude_code() {
   if command -v claude >/dev/null 2>&1; then
     info "Removing Claude Code MCP server..."
-    # Remove from all scopes (user/global and project-level)
-    claude mcp remove -s user tronlink 2>/dev/null && removed "MCP server 'tronlink' (global)"
-    claude mcp remove tronlink 2>/dev/null && removed "MCP server 'tronlink' (project)"
+    # Remove from all scopes (user/global and project-level).
+    # Cover both the current name (tronlink-skills) and the legacy name (tronlink).
+    claude mcp remove -s user tronlink-skills 2>/dev/null && removed "MCP server 'tronlink-skills' (global)"
+    claude mcp remove tronlink-skills 2>/dev/null && removed "MCP server 'tronlink-skills' (project)"
+    claude mcp remove -s user tronlink 2>/dev/null && removed "MCP server 'tronlink' (legacy global)"
+    claude mcp remove tronlink 2>/dev/null && removed "MCP server 'tronlink' (legacy project)"
     ok "MCP cleanup done"
   fi
 }

@@ -21,7 +21,7 @@ set -e
 REPO="TronLink/tronlink-skills"
 REPO_URL="https://github.com/${REPO}.git"
 INSTALL_DIR="$HOME/.tronlink-skills"
-VERSION="1.0.0"
+VERSION="1.1.0"
 LOCAL_SRC=""
 
 # Parse arguments
@@ -123,17 +123,18 @@ setup_claude_code() {
 
   # Method 1: Register as global MCP server (available in all projects)
   info "Registering MCP server (global)..."
-  if claude mcp add -s user tronlink -- node "$INSTALL_DIR/scripts/mcp_server.mjs" 2>/dev/null; then
-    ok "MCP server registered globally (25 TRON tools available in all projects)"
+  if claude mcp add -s user tronlink-skills -- node "$INSTALL_DIR/scripts/mcp_server.mjs" 2>/dev/null; then
+    ok "MCP server registered globally (39 TRON tools available in all projects)"
   else
     warn "MCP auto-register failed. Manual setup:"
     echo ""
-    echo "  claude mcp add -s user tronlink -- node $INSTALL_DIR/scripts/mcp_server.mjs"
+    echo "  claude mcp add -s user tronlink-skills -- node $INSTALL_DIR/scripts/mcp_server.mjs"
     echo ""
   fi
 
   # Method 2: Also add CLAUDE.md to project if we're in a project
-  if [ -f "package.json" ] || [ -d ".git" ]; then
+  # (guard on the source existing so a missing file never aborts the installer under `set -e`)
+  if { [ -f "package.json" ] || [ -d ".git" ]; } && [ -f "$INSTALL_DIR/CLAUDE.md" ]; then
     if [ ! -f "CLAUDE.md" ]; then
       cp "$INSTALL_DIR/CLAUDE.md" ./CLAUDE.md
       ok "Added CLAUDE.md to current project"
@@ -246,11 +247,11 @@ setup_generic() {
   echo ""
   echo "  ┌─────────────────────────────────────────────────────────────┐"
   echo "  │ Claude Code:                                                │"
-  echo "  │   claude mcp add tronlink -- node \\                        │"
+  echo "  │   claude mcp add tronlink-skills -- node \\                 │"
   echo "  │     $INSTALL_DIR/scripts/mcp_server.mjs                    │"
   echo "  │                                                             │"
   echo "  │ Claude Desktop (claude_desktop_config.json):                │"
-  echo "  │   { \"mcpServers\": { \"tronlink\": {                          │"
+  echo "  │   { \"mcpServers\": { \"tronlink-skills\": {                   │"
   echo "  │       \"command\": \"node\",                                    │"
   echo "  │       \"args\": [\"$INSTALL_DIR/scripts/mcp_server.mjs\"]      │"
   echo "  │   }}}                                                       │"

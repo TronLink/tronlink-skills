@@ -1,6 +1,6 @@
 {
   "name": "tronlink-skills",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "AI Agent skills for TronLink wallet — wallet management, token queries, DEX swap, energy/bandwidth resource management, and TRX staking on the TRON network.",
   "main": "scripts/tron_api.mjs",
   "type": "module",
@@ -21,7 +21,8 @@
   "scripts": {
     "start": "node scripts/tron_api.mjs",
     "mcp": "node scripts/mcp_server.mjs",
-    "test": "node scripts/tron_api.mjs validate-address --address TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    "test": "node --test test/",
+    "test:smoke": "node scripts/tron_api.mjs validate-address --address TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
     "postinstall": "echo '\\n  ✅ tronlink-skills installed!\\n  Skills: tron-wallet, tron-token, tron-market, tron-swap, tron-resource, tron-staking\\n  Run: npx tron-api --help\\n'"
   },
   "dependencies": {},

@@ -1,7 +1,7 @@
 {
   "name": "tronlink-skills",
   "description": "AI Agent skills for TronLink wallet — wallet management, token queries, DEX swap, energy/bandwidth resource management, and TRX staking on the TRON network",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "tronlink-skills"
   },

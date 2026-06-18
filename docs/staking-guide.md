@@ -96,11 +96,11 @@ Annual staking reward = frozen_trx × apy
 If energy_savings + staking_reward > opportunity_cost → Freeze
 ```
 
-For a user doing 1 USDT transfer per day:
-- Energy saved: 65,000 × 420 SUN × 365 = 9,963,000,000 SUN ≈ 9,963 TRX/year
+For a user doing 1 USDT transfer per day (energy fee = 100 SUN, mid-2026 — re-run with the live `energy-price`):
+- Energy saved: 65,000 × 100 SUN × 365 = 2,372,500,000 SUN ≈ 2,373 TRX/year (was ~9,963 TRX/year at the old 420-SUN fee)
 - TRX to freeze for 65,000 daily energy: ~14,500 TRX
 - Staking reward on 14,500 TRX at 4%: 580 TRX/year
-- Total benefit: ~10,543 TRX/year — highly cost-effective
+- Total benefit: ~2,953 TRX/year — still cost-effective for daily users (and far more so when the energy fee is higher)
 
 ## Common Mistakes
 

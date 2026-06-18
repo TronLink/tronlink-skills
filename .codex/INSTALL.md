@@ -34,12 +34,14 @@ You should see: `tron-wallet`, `tron-token`, `tron-market`, `tron-swap`, `tron-r
 
 | Skill | When to Use |
 |-------|-------------|
-| `tron-wallet` | Wallet balance, TRC-20 holdings, TRX/token transfer, transaction history |
-| `tron-token` | Token search, metadata, security audit, holder analysis, trending |
-| `tron-market` | Token prices, K-line charts, trade history, whale monitoring |
-| `tron-swap` | DEX swap via SunSwap V2/V3, quote, route, execute |
+| `tron-wallet` | Wallet balance, TRC-20 holdings, transaction history, account info |
+| `tron-token` | Token search, metadata, holder analysis, trending, security heuristic |
+| `tron-market` | Token prices, OHLC charts, transfers, whale monitoring |
+| `tron-swap` | DEX swap quote & route (SunSwap V2/V3, Sun.io), tx status |
 | `tron-resource` | Energy & Bandwidth query, estimation, cost optimization |
-| `tron-staking` | Stake 2.0 freeze/unfreeze, vote for SRs, claim rewards, APY |
+| `tron-staking` | Stake 2.0 info: SR list, staking state, APY |
+
+> All skills are **read-only** — they query on-chain/market data and do not sign, transfer, swap, freeze, vote, or claim.
 
 ## Updating
 

@@ -4,7 +4,7 @@ description: "This skill should be used when the user asks to 'swap tokens on TR
 license: MIT
 metadata:
   author: tronlink-skills
-  version: "1.0.0"
+  version: "1.1.0"
   homepage: "https://trongrid.io"
 ---
 
@@ -14,36 +14,48 @@ metadata:
 
 ## Pre-flight Checks
 
-1. **Confirm Python & dependencies**:
+1. **Confirm Node.js >= 18**:
    ```bash
    node -e "console.log('ok')"  # Node.js >= 18 required
    ```
 
 2. **Check energy before swapping**: Swaps consume significant Energy (typically 50,000–200,000). Run:
    ```bash
-   node scripts/tron_api.mjs resource-info --address <YOUR_ADDRESS>
+   node "$TRON_API" resource-info --address <YOUR_ADDRESS>
    ```
    If energy is insufficient, consider freezing TRX first (`tron-staking`) or accept TRX burn cost.
+
+## Resolve the CLI path
+
+Every command below runs `node "$TRON_API"`. Set `$TRON_API` once per session so it works no matter how the skill was installed (Claude Code plugin, `install.sh` → `~/.tronlink-skills`, or inside the cloned repo):
+
+```bash
+TRON_API="${CLAUDE_PLUGIN_ROOT:-$HOME/.tronlink-skills}/scripts/tron_api.mjs"
+[ -f "$TRON_API" ] || TRON_API="scripts/tron_api.mjs"   # fallback when run inside the repo
+```
+
+> **Read-only:** these commands quote and inspect swaps; they do **not** sign or broadcast transactions.
 
 ## Commands
 
 ### 1. Swap Quote
 
 ```bash
-node scripts/tron_api.mjs swap-quote \
+node "$TRON_API" swap-quote \
   --from-token <FROM_CONTRACT_OR_TRX> \
   --to-token <TO_CONTRACT_OR_TRX> \
-  --amount <HUMAN_READABLE_AMOUNT>
+  --amount <HUMAN_READABLE_AMOUNT> \
+  [--slippage 0.5]
 ```
 
-Returns: expected output amount, price impact, route path, minimum received (with slippage), estimated energy cost.
+Returns: expected output amount, `slippage_pct`, `minimum_received` (= amount_out × (1 − slippage), your worst-case fill), price impact, fee, route path, and estimated energy cost. Default slippage is 0.5%; `--slippage` is validated to the **0–50%** range (a larger value is rejected rather than producing a negative `minimum_received`). `--amount` must be a positive number. The same `slippage` parameter is also exposed on the MCP `tron_swap_quote` tool.
 
 ⚠️ **Amount is human-readable** — pass `100` for 100 TRX, NOT `100000000`.
 
 Example:
 ```bash
 # Quote: 100 TRX → USDT
-node scripts/tron_api.mjs swap-quote \
+node "$TRON_API" swap-quote \
   --from-token TRX \
   --to-token TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t \
   --amount 100
@@ -52,18 +64,18 @@ node scripts/tron_api.mjs swap-quote \
 ### 2. Best Route
 
 ```bash
-node scripts/tron_api.mjs swap-route \
+node "$TRON_API" swap-route \
   --from-token <FROM_CONTRACT> \
   --to-token <TO_CONTRACT> \
   --amount <AMOUNT>
 ```
 
-Returns: optimal route across SunSwap V2, V3, Sun.io — may include multi-hop routes (e.g., TRX → WTRX → USDT).
+Returns the same best-route data as `swap-quote` — this command is currently an **alias** of it. The chosen route, `path`, `pool_versions`, and price impact are already part of the `swap-quote` response; multi-hop paths (e.g. TRX → WTRX → USDT) appear in those fields when the router returns them.
 
 ### 3. Transaction Status
 
 ```bash
-node scripts/tron_api.mjs tx-status --txid <TRANSACTION_HASH>
+node "$TRON_API" tx-status --txid <TRANSACTION_HASH>
 ```
 
 Returns: confirmation status, block number, energy used, bandwidth used, result.
@@ -82,14 +94,14 @@ TRON swap costs differ from EVM chains:
 
 | Operation | Bandwidth | Energy | TRX Burn (if no resources) |
 |-----------|-----------|--------|---------------------------|
-| TRX → TRC-20 | ~345 | ~65,000 | ~13 TRX |
-| TRC-20 → TRX | ~345 | ~50,000 | ~10 TRX |
-| TRC-20 → TRC-20 | ~345 | ~130,000 | ~26 TRX |
-| Approve (first time) | ~345 | ~30,000 | ~6 TRX |
+| TRX → TRC-20 | ~345 | ~65,000 | ~6.5 TRX |
+| TRC-20 → TRX | ~345 | ~50,000 | ~5 TRX |
+| TRC-20 → TRC-20 | ~345 | ~130,000 | ~13 TRX |
+| Approve (first time) | ~345 | ~30,000 | ~3 TRX |
 
-⚠️ Energy costs fluctuate. Always check current energy price:
+⚠️ TRX-burn = energy × `getEnergyFee` ÷ 1e6. The figures above use the live fee ≈ **100 SUN (mid-2026)**; it was 420 SUN in 2023–2024 (~4.2× higher). Always check the current price:
 ```bash
-node scripts/tron_api.mjs energy-price
+node "$TRON_API" energy-price
 ```
 
 ## Slippage Guide
@@ -104,7 +116,7 @@ node scripts/tron_api.mjs energy-price
 
 ## Safety Checks Before Swap
 
-1. **Security audit**: Run `node scripts/tron_api.mjs token-security --contract <TOKEN>` before trading unfamiliar tokens
-2. **Liquidity check**: Run `node scripts/tron_api.mjs pool-info --contract <TOKEN>` — avoid tokens with < $10k liquidity
-3. **Energy check**: Run `node scripts/tron_api.mjs resource-info --address <YOUR_ADDRESS>` — swap without energy burns TRX
+1. **Security heuristic**: Run `node "$TRON_API" token-security --contract <TOKEN>` before trading unfamiliar tokens (first-pass risk snapshot, not a full audit)
+2. **Liquidity check**: Run `node "$TRON_API" pool-info --contract <TOKEN>` — avoid tokens with < $10k liquidity
+3. **Energy check**: Run `node "$TRON_API" resource-info --address <YOUR_ADDRESS>` — swap without energy burns TRX
 4. **Price impact**: If price impact > 3%, consider splitting into smaller trades

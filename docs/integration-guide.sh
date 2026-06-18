@@ -21,7 +21,7 @@ claude
 #    Then you can give instructions in natural language, for example:
 
 # 💬 "Check the TRX balance for this address: T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
-# 💬 "Run a security audit on the USDT token"
+# 💬 "Run a security risk check (heuristic, not a full audit) on the USDT token"
 # 💬 "What is the current Energy price on the TRON network?"
 # 💬 "Get a swap quote for 100 TRX to USDT"
 # 💬 "Show the TRON Super Representative list"
