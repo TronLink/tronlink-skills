@@ -215,7 +215,7 @@ node scripts/tron_api.mjs token-price --contract TRX
 A: Make sure you start `claude` in the project root directory and the `CLAUDE.md` file exists.
 
 ### Q: MCP Server won't connect?
-A: Check that the path to `mcp_server.mjs` is an absolute path, and Node.js >= 18.
+A: Check that the path to `mcp_server.mjs` is an absolute path, and `node -v` prints `v24.22.1`. If you use nvm, set `"command"` to the absolute path of that node binary (`nvm which 24.22.1`), because GUI clients may not see your shell PATH.
 
 ### Q: API requests failing?
 A: TronGrid public endpoints have rate limits. Set `TRONGRID_API_KEY` for higher limits. Apply at https://www.trongrid.io/dashboard.

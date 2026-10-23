@@ -7,7 +7,7 @@
 # Method 1: Claude Code (Recommended)
 # ────────────────────────────────────────────────────────────
 
-# 1. Install Claude Code (requires Node.js 18+)
+# 1. Install Claude Code (TronLink Skills itself requires Node.js 24.22.1 — see .nvmrc)
 npm install -g @anthropic-ai/claude-code
 
 # 2. Clone TronLink Skills into your project

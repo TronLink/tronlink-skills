@@ -6,7 +6,7 @@
  * Provides wallet management, token queries, market data, DEX swap,
  * resource (Energy/Bandwidth) management, and TRX staking on the TRON network.
  *
- * Requirements: Node.js >= 18 (uses native fetch)
+ * Requirements: Node.js 24.22.1 (pinned; uses native fetch)
  *
  * Usage: node tron_api.mjs <command> [options]
  */
