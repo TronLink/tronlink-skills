@@ -562,7 +562,7 @@ function buildArgs(tool, input) {
 
 function runCommand(args) {
   return new Promise((resolve) => {
-    execFile("node", [TRON_API, ...args], { timeout: 30000 }, (err, stdout, stderr) => {
+    execFile(process.execPath, [TRON_API, ...args], { timeout: 30000 }, (err, stdout, stderr) => {
       if (err) {
         resolve({ error: err.message, stderr: stderr?.trim() });
       } else {

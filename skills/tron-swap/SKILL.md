@@ -14,9 +14,9 @@ metadata:
 
 ## Pre-flight Checks
 
-1. **Confirm Node.js >= 18**:
+1. **Confirm Node.js 24.22.1**:
    ```bash
-   node -e "console.log('ok')"  # Node.js >= 18 required
+   node -v  # must print v24.22.1
    ```
 
 2. **Check energy before swapping**: Swaps consume significant Energy (typically 50,000–200,000). Run:

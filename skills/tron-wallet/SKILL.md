@@ -14,7 +14,7 @@ metadata:
 
 ## Pre-flight Checks
 
-1. **Confirm Node.js**: Run `node -e "console.log('ok')"  # Node.js >= 18 required
+1. **Confirm Node.js 24.22.1**: Run `node -v` (must print `v24.22.1`)
 
 2. **API Key (optional)**: For higher rate limits, set:
    ```bash

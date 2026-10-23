@@ -2,7 +2,7 @@
 
 Read-only AI-agent tools for the TRON network: wallet balances, token info & security heuristics, market data, DEX swap quotes, Energy/Bandwidth resource planning, and TRX Stake 2.0 info.
 
-**Read-only — no private keys, no signing, no transfers.** Every command is a read query against public TRON APIs (TronGrid / TronScan / CoinGecko / Sun.io router). Requires **Node.js >= 18**.
+**Read-only — no private keys, no signing, no transfers.** Every command is a read query against public TRON APIs (TronGrid / TronScan / CoinGecko / Sun.io router). Requires **Node.js 24.22.1** (pinned in `.nvmrc`).
 
 ## Running commands
 

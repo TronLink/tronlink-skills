@@ -22,6 +22,7 @@ REPO="TronLink/tronlink-skills"
 REPO_URL="https://github.com/${REPO}.git"
 INSTALL_DIR="$HOME/.tronlink-skills"
 VERSION="1.1.0"
+REQUIRED_NODE_VERSION="24.22.1"
 LOCAL_SRC=""
 
 # Parse arguments
@@ -268,14 +269,15 @@ setup_generic() {
 
 check_node() {
   if ! command -v node >/dev/null 2>&1; then
-    warn "Node.js not found. Install Node.js 18+ first:"
+    warn "Node.js not found. Install Node.js $REQUIRED_NODE_VERSION first:"
     echo "  https://nodejs.org"
     exit 1
   fi
 
-  NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
-  if [ "$NODE_VERSION" -lt 18 ] 2>/dev/null; then
-    warn "Node.js $NODE_VERSION found, but 18+ required"
+  NODE_VERSION=$(node -v | sed 's/^v//')
+  if [ "$NODE_VERSION" != "$REQUIRED_NODE_VERSION" ]; then
+    warn "Node.js v$NODE_VERSION found, but v$REQUIRED_NODE_VERSION required"
+    echo "  nvm: nvm install $REQUIRED_NODE_VERSION && nvm use $REQUIRED_NODE_VERSION"
     echo "  Update: https://nodejs.org"
     exit 1
   fi

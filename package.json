@@ -21,7 +21,7 @@
   "scripts": {
     "start": "node scripts/tron_api.mjs",
     "mcp": "node scripts/mcp_server.mjs",
-    "test": "node --test test/",
+    "test": "node --test \"test/**/*.test.mjs\"",
     "test:smoke": "node scripts/tron_api.mjs validate-address --address TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
     "postinstall": "echo '\\n  ✅ tronlink-skills installed!\\n  Skills: tron-wallet, tron-token, tron-market, tron-swap, tron-resource, tron-staking\\n  Run: npx tron-api --help\\n'"
   },
@@ -37,6 +37,6 @@
     "url": "https://github.com/TronLink/tronlink-skills"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "24.22.1"
   }
 }
