@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 24.22.1 (pinned in `.nvmrc`)
+- Node.js 24.22.3 (pinned in `.nvmrc`)
 - Git
 
 ## Installation

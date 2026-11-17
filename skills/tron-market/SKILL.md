@@ -14,9 +14,9 @@ metadata:
 
 ## Pre-flight Checks
 
-1. **Confirm Node.js 24.22.1**:
+1. **Confirm Node.js 24.22.3**:
    ```bash
-   node -v  # must print v24.22.1
+   node -v  # must print v24.22.3
    ```
 
 ## Resolve the CLI path

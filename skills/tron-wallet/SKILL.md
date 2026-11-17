@@ -14,7 +14,7 @@ metadata:
 
 ## Pre-flight Checks
 
-1. **Confirm Node.js 24.22.1**: Run `node -v` (must print `v24.22.1`)
+1. **Confirm Node.js 24.22.3**: Run `node -v` (must print `v24.22.3`)
 
 2. **API Key (optional)**: For higher rate limits, set:
    ```bash
