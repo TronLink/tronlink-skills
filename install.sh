@@ -22,7 +22,7 @@ REPO="TronLink/tronlink-skills"
 REPO_URL="https://github.com/${REPO}.git"
 INSTALL_DIR="$HOME/.tronlink-skills"
 VERSION="1.1.0"
-REQUIRED_NODE_VERSION="24.22.1"
+REQUIRED_NODE_VERSION="24.22.3"
 LOCAL_SRC=""
 
 # Parse arguments

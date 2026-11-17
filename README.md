@@ -2,7 +2,7 @@
 
 AI Agent skills for TronLink wallet and the TRON ecosystem. Provides wallet management, token queries, market data, DEX swap, resource (Energy/Bandwidth) management, and TRX staking across the TRON network.
 
-**Node.js 24.22.1 required** (pinned via `.nvmrc` / `engines`; uses native `fetch` and `crypto`).
+**Node.js 24.22.3 required** (pinned via `.nvmrc` / `engines`; uses native `fetch` and `crypto`).
 
 ## Why TRON Needs Its Own Skill Set
 
@@ -102,7 +102,7 @@ The CLI uses **native Node.js `fetch`** and **native `crypto`** for all read-onl
 
 ## Prerequisites
 
-- **Node.js 24.22.1** (pinned — run `nvm use` in the repo root)
+- **Node.js 24.22.3** (pinned — run `nvm use` in the repo root)
 - TronGrid API Key (optional — apply at [TronGrid Dashboard](https://www.trongrid.io/dashboard))
 - TronScan API Key (optional — raises TronScan rate limits and enables full `token-search`)
 
@@ -140,7 +140,7 @@ Natural Language Input
     ↓
 AI Agent (Claude Code / Cursor / OpenClaw / Custom)
     ↓
-tron_api.mjs (Node.js 24.22.1, native fetch — zero deps)
+tron_api.mjs (Node.js 24.22.3, native fetch — zero deps)
     ↓  ← TronGrid / TronScan API keys (both optional)
     ├── TronGrid        — accounts, resources, chain params, tx, address validation
     ├── TronScan        — token metadata, holders, transfers, approvals, rankings
